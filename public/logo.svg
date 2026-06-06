@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#0a1628"/>
+      <stop offset="100%" stop-color="#020408"/>
+    </radialGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <circle cx="100" cy="100" r="99" fill="url(#bg)" stroke="#00d4ff" stroke-width="1.5" stroke-opacity="0.4"/>
+  <!-- Circuit lines -->
+  <g stroke="#00d4ff" stroke-width="1" stroke-opacity="0.3" fill="none">
+    <line x1="100" y1="30" x2="100" y2="70"/>
+    <circle cx="100" cy="25" r="4" fill="#00d4ff" fill-opacity="0.5"/>
+    <line x1="60" y1="60" x2="80" y2="80"/>
+    <line x1="140" y1="60" x2="120" y2="80"/>
+    <line x1="40" y1="110" x2="75" y2="110"/>
+    <line x1="160" y1="110" x2="125" y2="110"/>
+  </g>
+  <!-- Y letter -->
+  <text x="100" y="125" text-anchor="middle" font-family="Orbitron, monospace" font-size="56" font-weight="900" fill="#00d4ff" filter="url(#glow)" opacity="0.95">Y</text>
+  <!-- YUVA text -->
+  <text x="100" y="155" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#ffffff" letter-spacing="6" opacity="0.7">YUVA</text>
+  <!-- Outer ring dots -->
+  <circle cx="100" cy="10" r="3" fill="#00d4ff" opacity="0.6"/>
+  <circle cx="190" cy="100" r="3" fill="#bf00ff" opacity="0.6"/>
+  <circle cx="10" cy="100" r="3" fill="#00ff9f" opacity="0.6"/>
+  <circle cx="100" cy="190" r="3" fill="#00d4ff" opacity="0.6"/>
+</svg>
