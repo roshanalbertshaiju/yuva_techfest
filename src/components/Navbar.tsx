@@ -40,7 +40,7 @@ export default function Navbar() {
       transition={{ duration: 0.7, ease: 'easeOut' }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled
-          ? 'glass border-b border-[rgba(0,212,255,0.15)]'
+          ? 'glass border-b border-[rgba(255,115,0,0.15)]'
           : 'bg-transparent border-b border-transparent'
       }`}
     >
@@ -52,7 +52,7 @@ export default function Navbar() {
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
         >
-          <div className="relative w-12 h-12 rounded-full overflow-hidden border border-[rgba(0,212,255,0.3)] group-hover:border-[#00d4ff] transition-colors duration-300 group-hover:shadow-[0_0_20px_rgba(0,212,255,0.5)]">
+          <div className="relative w-12 h-12 rounded-full overflow-hidden border border-[rgba(255,115,0,0.3)] group-hover:border-[#ff7300] transition-colors duration-300 group-hover:shadow-[0_0_20px_rgba(255,115,0,0.5)]">
             <Image
                src="/logo.png"
                alt="Yuva Tech-Fest Logo"
@@ -64,7 +64,7 @@ export default function Navbar() {
            </div>
            <div className="hidden sm:block">
              <p className="font-orbitron text-sm font-bold text-white leading-none tracking-wide">
-               YUVA <span className="text-[#00d4ff]">TECH-FEST</span>
+               YUVA <span className="text-[#ff7300]">TECH-FEST</span>
              </p>
             <p className="font-mono text-[10px] text-slate-400 tracking-widest mt-0.5">
               HACKATHON 2025
@@ -80,18 +80,18 @@ export default function Navbar() {
               href={link.href}
               className={`nav-link ${
                 activeSection === link.label.toLowerCase()
-                  ? 'text-[#00d4ff]'
+                  ? 'text-[#ff7300]'
                   : ''
               }`}
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 * i + 0.4 }}
             >
-              <span className="text-[#00d4ff44] mr-1">{'>'}</span>
+              <span className="text-[#ff730044] mr-1">{'>'}</span>
               {link.label}
               {activeSection === link.label.toLowerCase() && (
                 <motion.span
-                  className="absolute bottom-[-4px] left-0 right-0 h-[1px] bg-[#00d4ff]"
+                  className="absolute bottom-[-4px] left-0 right-0 h-[1px] bg-[#ff7300]"
                   layoutId="nav-indicator"
                 />
               )}
@@ -122,7 +122,7 @@ export default function Navbar() {
           {[0, 1, 2].map((i) => (
             <motion.span
               key={i}
-              className="block w-6 h-0.5 bg-[#00d4ff]"
+              className="block w-6 h-0.5 bg-[#ff7300]"
               animate={{
                 rotate: menuOpen && i === 0 ? 45 : menuOpen && i === 2 ? -45 : 0,
                 y: menuOpen && i === 0 ? 8 : menuOpen && i === 2 ? -8 : 0,
@@ -141,7 +141,7 @@ export default function Navbar() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden glass border-t border-[rgba(0,212,255,0.15)]"
+            className="md:hidden glass border-t border-[rgba(255,115,0,0.15)]"
           >
             <div className="px-6 py-4 flex flex-col gap-4">
               {navLinks.map((link) => (

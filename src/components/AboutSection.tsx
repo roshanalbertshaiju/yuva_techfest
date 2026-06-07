@@ -8,12 +8,12 @@ import { Code2, Globe, Cpu, Shield, Lightbulb, Rocket, Calendar, MapPin, Trophy 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
 const themes = [
-  { icon: <Cpu size={28} />, title: 'AI & Machine Learning', desc: 'Build intelligent systems that learn, adapt, and solve real-world challenges using cutting-edge ML models.', color: '#00d4ff', tag: 'TRACK 01' },
-  { icon: <Globe size={28} />, title: 'Web3 & Blockchain', desc: 'Architect decentralized applications, DeFi protocols, and NFT ecosystems on next-gen blockchains.', color: '#bf00ff', tag: 'TRACK 02' },
-  { icon: <Shield size={28} />, title: 'Cybersecurity', desc: 'Design robust security tools, pen-testing frameworks, and privacy-preserving technologies.', color: '#00ff9f', tag: 'TRACK 03' },
+  { icon: <Cpu size={28} />, title: 'AI & Machine Learning', desc: 'Build intelligent systems that learn, adapt, and solve real-world challenges using cutting-edge ML models.', color: '#ff7300', tag: 'TRACK 01' },
+  { icon: <Globe size={28} />, title: 'Web3 & Blockchain', desc: 'Architect decentralized applications, DeFi protocols, and NFT ecosystems on next-gen blockchains.', color: '#ffb700', tag: 'TRACK 02' },
+  { icon: <Shield size={28} />, title: 'Cybersecurity', desc: 'Design robust security tools, pen-testing frameworks, and privacy-preserving technologies.', color: '#ff3c00', tag: 'TRACK 03' },
   { icon: <Code2 size={28} />, title: 'FinTech & EdTech', desc: 'Reimagine finance and education through smart automation, analytics, and inclusive design.', color: '#ff6b35', tag: 'TRACK 04' },
   { icon: <Lightbulb size={28} />, title: 'IoT & Smart Cities', desc: 'Connect the physical and digital world with sensor networks, smart infra, and edge computing.', color: '#ffd700', tag: 'TRACK 05' },
-  { icon: <Rocket size={28} />, title: 'Open Innovation', desc: 'No constraints. No boundaries. Bring your wildest idea and disrupt any industry you choose.', color: '#ff4d94', tag: 'TRACK 06' },
+  { icon: <Rocket size={28} />, title: 'Open Innovation', desc: 'No constraints. No boundaries. Bring your wildest idea and disrupt any industry you choose.', color: '#ff4b4b', tag: 'TRACK 06' },
 ]
 
 const timeline = [
@@ -39,7 +39,7 @@ function SectionTitle({ tag, title, subtitle }: { tag: string; title: string; su
       animate={isInView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.7 }}
     >
-      <span className="font-mono text-xs text-[#00d4ff] tracking-[0.3em] uppercase mb-4 block">{tag}</span>
+      <span className="font-mono text-xs text-[#ff7300] tracking-[0.3em] uppercase mb-4 block">{tag}</span>
       <h2 className="font-orbitron text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">{title}</h2>
       {subtitle && <p className="text-slate-400 text-base max-w-xl mx-auto leading-relaxed">{subtitle}</p>}
       <div className="section-divider mt-6" />
@@ -73,7 +73,7 @@ function ThemeCard({ theme, index }: { theme: typeof themes[0]; index: number })
         </span>
       </div>
       <div>
-        <h3 className="font-orbitron text-base font-bold text-white mb-2 group-hover:text-[#00d4ff] transition-colors duration-300">
+        <h3 className="font-orbitron text-base font-bold text-white mb-2 group-hover:text-[#ff7300] transition-colors duration-300">
           {theme.title}
         </h3>
         <p className="text-slate-400 text-sm leading-relaxed">{theme.desc}</p>
@@ -108,14 +108,14 @@ function TimelineItem({ item, index }: { item: TimelineEntry; index: number }) {
       <div className={`glass-card rounded-lg p-5 md:w-[44%] flex gap-4 items-start ${!isLeft ? 'md:flex-row-reverse md:text-right' : ''}`}>
         <div className="text-2xl flex-shrink-0">{item.icon}</div>
         <div className="flex-1">
-          <p className="font-mono text-[10px] text-[#00d4ff] tracking-widest mb-1">{item.date}</p>
+          <p className="font-mono text-[10px] text-[#ff7300] tracking-widest mb-1">{item.date}</p>
           <h4 className="font-orbitron text-sm font-bold text-white mb-1">{item.event}</h4>
           <p className="text-slate-400 text-xs leading-relaxed">{item.desc}</p>
         </div>
       </div>
       {/* Center dot on the vertical line */}
-      <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-[#020408] border-2 border-[#00d4ff] items-center justify-center">
-        <div className="w-1.5 h-1.5 rounded-full bg-[#00d4ff] animate-pulse" />
+      <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-[#020408] border-2 border-[#ff7300] items-center justify-center">
+        <div className="w-1.5 h-1.5 rounded-full bg-[#ff7300] animate-pulse" />
       </div>
     </motion.div>
   )
@@ -131,8 +131,8 @@ export default function AboutSection() {
     <section id="about" className="relative py-28 bg-[#020408]/80 backdrop-blur-[4px] overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 cyber-grid-bg opacity-30" />
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#00d4ff22] to-transparent" />
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#00d4ff22] to-transparent" />
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#ff730022] to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#ff730022] to-transparent" />
 
       <div className="relative z-10 max-w-7xl mx-auto px-6">
 
@@ -156,10 +156,10 @@ export default function AboutSection() {
           </div>
           <p className="text-lg md:text-xl text-slate-300 leading-relaxed font-light">
             Yuva Tech-Fest Hackathon is a{' '}
-            <span className="text-[#00d4ff] font-semibold">36-hour marathon</span> of relentless
+            <span className="text-[#ff7300] font-semibold">36-hour marathon</span> of relentless
             innovation. Assemble your team, choose a challenge track, and build a solution that
             could change the world. Guided by{' '}
-            <span className="text-[#bf00ff] font-semibold">industry mentors</span>, judged by
+            <span className="text-[#ffb700] font-semibold">industry mentors</span>, judged by
             experts, and celebrated by the entire SRM community.
           </p>
           <div className="flex flex-wrap justify-center gap-6 mt-8">
@@ -169,7 +169,7 @@ export default function AboutSection() {
               { icon: <Trophy size={14} />, text: 'Prize Pool ₹1 Lakh+' },
             ].map((item) => (
               <div key={item.text} className="flex items-center gap-2 text-slate-400 text-sm">
-                <span className="text-[#00d4ff]">{item.icon}</span>
+                <span className="text-[#ff7300]">{item.icon}</span>
                 {item.text}
               </div>
             ))}
@@ -194,7 +194,7 @@ export default function AboutSection() {
 
         <div className="relative max-w-3xl mx-auto">
           {/* Vertical center line */}
-          <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-[#00d4ff33] to-transparent -translate-x-1/2 hidden md:block" />
+          <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-[#ff730033] to-transparent -translate-x-1/2 hidden md:block" />
           <div className="flex flex-col gap-0">
             {timeline.map((item, i) => (
               <TimelineItem key={item.event} item={item} index={i} />
@@ -211,9 +211,9 @@ export default function AboutSection() {
           transition={{ duration: 0.7 }}
         >
           {[
-            { value: '500+', label: 'Participants', color: '#00d4ff' },
-            { value: '50+', label: 'Expert Mentors', color: '#bf00ff' },
-            { value: '6', label: 'Challenge Tracks', color: '#00ff9f' },
+            { value: '500+', label: 'Participants', color: '#ff7300' },
+            { value: '50+', label: 'Expert Mentors', color: '#ffb700' },
+            { value: '6', label: 'Challenge Tracks', color: '#ff3c00' },
             { value: '₹1L+', label: 'Prize Pool', color: '#ffd700' },
           ].map((s, i) => (
             <motion.div

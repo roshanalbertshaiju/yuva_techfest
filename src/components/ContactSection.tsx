@@ -43,8 +43,8 @@ export default function ContactSection() {
     <section id="contact" className="relative py-28 bg-[#020408]/80 backdrop-blur-[4px] overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 cyber-grid-bg opacity-20" />
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#bf00ff22] to-transparent" />
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-[radial-gradient(circle,rgba(191,0,255,0.04)_0%,transparent_70%)] pointer-events-none" />
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#ff730022] to-transparent" />
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-[radial-gradient(circle,rgba(255,115,0,0.04)_0%,transparent_70%)] pointer-events-none" />
 
       <div className="relative z-10 max-w-7xl mx-auto px-6">
         {/* Title */}
@@ -55,7 +55,7 @@ export default function ContactSection() {
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.7 }}
         >
-          <span className="font-mono text-xs text-[#bf00ff] tracking-[0.3em] uppercase mb-4 block">
+          <span className="font-mono text-xs text-[#ff7300] tracking-[0.3em] uppercase mb-4 block">
             // GET IN TOUCH
           </span>
           <h2 className="font-orbitron text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">
@@ -64,7 +64,7 @@ export default function ContactSection() {
           <p className="text-slate-400 text-base max-w-xl mx-auto leading-relaxed">
             Have a question? Want to sponsor? Or just say hello? We&apos;re all ears.
           </p>
-          <div className="w-20 h-0.5 bg-gradient-to-r from-transparent via-[#bf00ff] to-transparent mx-auto mt-6" />
+          <div className="w-20 h-0.5 bg-gradient-to-r from-transparent via-[#ff7300] to-transparent mx-auto mt-6" />
         </motion.div>
 
         <div className="grid lg:grid-cols-5 gap-10">
@@ -82,7 +82,7 @@ export default function ContactSection() {
               </h3>
 
               <div className="flex items-start gap-4">
-                <div className="p-2.5 rounded-lg bg-[#00d4ff10] text-[#00d4ff] flex-shrink-0">
+                <div className="p-2.5 rounded-lg bg-[#ff730010] text-[#ff7300] flex-shrink-0">
                   <MapPin size={18} />
                 </div>
                 <div>
@@ -95,29 +95,29 @@ export default function ContactSection() {
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="p-2.5 rounded-lg bg-[#bf00ff10] text-[#bf00ff] flex-shrink-0">
+                <div className="p-2.5 rounded-lg bg-[#ffb70010] text-[#ffb700] flex-shrink-0">
                   <Mail size={18} />
                 </div>
                 <div>
                   <p className="font-mono text-xs text-slate-500 tracking-widest uppercase mb-1">Email</p>
                   <a
                     href="mailto:yuvafest@srmtrichy.edu.in"
-                    className="text-sm text-slate-300 hover:text-[#00d4ff] transition-colors duration-300"
+                    className="text-sm text-slate-300 hover:text-[#ff7300] transition-colors duration-300"
                   >
                     yuvafest@srmtrichy.edu.in
                   </a>
                 </div>
               </div>
 
-              <div className="h-px bg-gradient-to-r from-transparent via-[#00d4ff22] to-transparent" />
+              <div className="h-px bg-gradient-to-r from-transparent via-[#ff730022] to-transparent" />
 
               <div>
                 <p className="font-mono text-xs text-slate-500 tracking-widest uppercase mb-3">Registration Types</p>
                 <div className="flex flex-col gap-2">
                   {[
-                    { label: 'Student', color: '#00d4ff', desc: 'Individual / Team of 2–4' },
-                    { label: 'Sponsor', color: '#bf00ff', desc: 'Corporate / Startup' },
-                    { label: 'Mentor', color: '#00ff9f', desc: 'Industry expert' },
+                    { label: 'Student', color: '#ff7300', desc: 'Individual / Team of 2–4' },
+                    { label: 'Sponsor', color: '#ffb700', desc: 'Corporate / Startup' },
+                    { label: 'Mentor', color: '#ff3c00', desc: 'Industry expert' },
                   ].map((r) => (
                     <div key={r.label} className="flex items-center gap-3">
                       <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: r.color, boxShadow: `0 0 6px ${r.color}` }} />
@@ -167,7 +167,7 @@ export default function ContactSection() {
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                 >
-                  <CheckCircle size={56} className="text-[#00ff9f]" style={{ filter: 'drop-shadow(0 0 20px #00ff9f88)' }} />
+                  <CheckCircle size={56} className="text-[#ff7300]" style={{ filter: 'drop-shadow(0 0 20px #ff730088)' }} />
                   <div>
                     <h3 className="font-orbitron text-xl font-bold text-white mb-2">Message Sent!</h3>
                     <p className="text-slate-400 text-sm max-w-xs">
