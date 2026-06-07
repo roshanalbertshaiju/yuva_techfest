@@ -54,17 +54,18 @@ export default function Navbar() {
         >
           <div className="relative w-12 h-12 rounded-full overflow-hidden border border-[rgba(0,212,255,0.3)] group-hover:border-[#00d4ff] transition-colors duration-300 group-hover:shadow-[0_0_20px_rgba(0,212,255,0.5)]">
             <Image
-              src="/logo.png"
-              alt="Yuva Fest Logo"
-              fill
-              className="object-cover scale-110"
-              priority
-            />
-          </div>
-          <div className="hidden sm:block">
-            <p className="font-orbitron text-sm font-bold text-white leading-none tracking-wide">
-              YUVA<span className="text-[#00d4ff]"> FEST</span>
-            </p>
+               src="/logo.png"
+               alt="Yuva Tech-Fest Logo"
+               fill
+               className="object-cover scale-110"
+               sizes="48px"
+               priority
+             />
+           </div>
+           <div className="hidden sm:block">
+             <p className="font-orbitron text-sm font-bold text-white leading-none tracking-wide">
+               YUVA <span className="text-[#00d4ff]">TECH-FEST</span>
+             </p>
             <p className="font-mono text-[10px] text-slate-400 tracking-widest mt-0.5">
               HACKATHON 2025
             </p>

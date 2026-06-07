@@ -21,13 +21,13 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Yuva Fest Hackathon | SRM IST Tiruchirappalli',
+  title: 'Yuva Tech-Fest Hackathon | SRM IST Tiruchirappalli',
   description:
-    'Join the most electrifying hackathon at SRM Institute of Science and Technology, Tiruchirappalli. Build, innovate, and compete in the Yuva Fest Hackathon.',
-  keywords: ['hackathon', 'SRM IST', 'Tiruchirappalli', 'Yuva Fest', 'tech fest', 'coding competition'],
+    'Join the most electrifying hackathon at SRM Institute of Science and Technology, Tiruchirappalli. Build, innovate, and compete in the Yuva Tech-Fest Hackathon.',
+  keywords: ['hackathon', 'SRM IST', 'Tiruchirappalli', 'Yuva Tech-Fest', 'tech fest', 'coding competition'],
   openGraph: {
-    title: 'Yuva Fest Hackathon | SRM IST Tiruchirappalli',
-    description: 'The most electrifying hackathon at SRM IST Trichy — Yuva Fest Hackathon.',
+    title: 'Yuva Tech-Fest Hackathon | SRM IST Tiruchirappalli',
+    description: 'The most electrifying hackathon at SRM IST Trichy — Yuva Tech-Fest Hackathon.',
     type: 'website',
   },
 }
@@ -39,7 +39,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} ${orbitron.variable} ${jetbrainsMono.variable}`}>
-      <body className="bg-[#020408] antialiased">
+      <body className="bg-[#020408] antialiased" suppressHydrationWarning>
         {children}
       </body>
     </html>

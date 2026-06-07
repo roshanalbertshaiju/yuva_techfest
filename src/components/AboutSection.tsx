@@ -128,7 +128,7 @@ export default function AboutSection() {
   const statsInView = useInView(statsRef, { once: true, margin: '-60px' })
 
   return (
-    <section id="about" className="relative py-28 bg-[#020408] overflow-hidden">
+    <section id="about" className="relative py-28 bg-[#020408]/80 backdrop-blur-[4px] overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 cyber-grid-bg opacity-30" />
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#00d4ff22] to-transparent" />
@@ -139,7 +139,7 @@ export default function AboutSection() {
         {/* What is Yuva Fest */}
         <SectionTitle
           tag="// ABOUT THE EVENT"
-          title="What is Yuva Fest?"
+          title="What is Yuva Tech-Fest?"
           subtitle="A flagship hackathon hosted by SRM IST Tiruchirappalli — where students, innovators, and builders converge to shape the future of technology."
         />
 
@@ -155,7 +155,7 @@ export default function AboutSection() {
             <Trophy size={40} className="text-[#ffd700]" style={{ filter: 'drop-shadow(0 0 12px #ffd70088)' }} />
           </div>
           <p className="text-lg md:text-xl text-slate-300 leading-relaxed font-light">
-            Yuva Fest Hackathon is a{' '}
+            Yuva Tech-Fest Hackathon is a{' '}
             <span className="text-[#00d4ff] font-semibold">36-hour marathon</span> of relentless
             innovation. Assemble your team, choose a challenge track, and build a solution that
             could change the world. Guided by{' '}

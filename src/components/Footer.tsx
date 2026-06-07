@@ -6,7 +6,7 @@ import { MapPin, Mail, ExternalLink } from 'lucide-react'
 
 export default function Footer() {
   return (
-    <footer className="relative bg-[#02060e] border-t border-[rgba(0,212,255,0.1)] overflow-hidden">
+    <footer className="relative bg-[#02060e]/80 backdrop-blur-[4px] border-t border-[rgba(0,212,255,0.1)] overflow-hidden">
       {/* Subtle grid */}
       <div className="absolute inset-0 cyber-grid-bg opacity-15" />
 
@@ -16,11 +16,11 @@ export default function Footer() {
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-3">
               <div className="relative w-10 h-10 rounded-full overflow-hidden border border-[rgba(0,212,255,0.3)]">
-                <Image src="/logo.png" alt="Yuva Fest" fill className="object-cover scale-110" />
+                <Image src="/logo.png" alt="Yuva Tech-Fest" fill className="object-cover scale-110" sizes="40px" />
               </div>
               <div>
                 <p className="font-orbitron text-sm font-bold text-white">
-                  YUVA <span className="text-[#00d4ff]">FEST</span>
+                  YUVA <span className="text-[#00d4ff]">TECH-FEST</span>
                 </p>
                 <p className="font-mono text-[9px] text-slate-500 tracking-widest">HACKATHON 2025</p>
               </div>
@@ -87,7 +87,7 @@ export default function Footer() {
         {/* Bottom */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="font-mono text-[10px] text-slate-600 tracking-widest">
-            © 2025 YUVA FEST HACKATHON — SRM IST TIRUCHIRAPPALLI
+            © 2025 YUVA TECH-FEST HACKATHON — SRM IST TIRUCHIRAPPALLI
           </p>
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-[#00ff9f] animate-pulse" style={{ boxShadow: '0 0 6px #00ff9f' }} />
