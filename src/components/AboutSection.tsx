@@ -4,6 +4,8 @@ import { motion } from 'framer-motion'
 import { useInView } from 'framer-motion'
 import { useRef } from 'react'
 import { Code2, Globe, Cpu, Shield, Lightbulb, Rocket, Calendar, MapPin, Trophy } from 'lucide-react'
+import { SplineScene } from '@/components/ui/splite'
+import { Spotlight } from '@/components/ui/spotlight'
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
@@ -145,34 +147,52 @@ export default function AboutSection() {
 
         {/* Mission statement card */}
         <motion.div
-          className="glass-card rounded-xl p-8 md:p-12 mb-20 text-center max-w-4xl mx-auto"
+          className="glass-card rounded-xl p-8 md:p-12 mb-20 relative overflow-hidden max-w-6xl mx-auto"
           initial={{ opacity: 0, scale: 0.97 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true, margin: '-60px' }}
           transition={{ duration: 0.7 }}
         >
-          <div className="flex justify-center mb-6">
-            <Trophy size={40} className="text-[#ffd700]" style={{ filter: 'drop-shadow(0 0 12px #ffd70088)' }} />
-          </div>
-          <p className="text-lg md:text-xl text-slate-300 leading-relaxed font-light">
-            Yuva Tech-Fest Hackathon is a{' '}
-            <span className="text-[#ff7300] font-semibold">36-hour marathon</span> of relentless
-            innovation. Assemble your team, choose a challenge track, and build a solution that
-            could change the world. Guided by{' '}
-            <span className="text-[#ffb700] font-semibold">industry mentors</span>, judged by
-            experts, and celebrated by the entire SRM community.
-          </p>
-          <div className="flex flex-wrap justify-center gap-6 mt-8">
-            {[
-              { icon: <MapPin size={14} />, text: 'SRM IST, Tiruchirappalli' },
-              { icon: <Calendar size={14} />, text: '36 Hours · Hackathon Format' },
-              { icon: <Trophy size={14} />, text: 'Prize Pool ₹1 Lakh+' },
-            ].map((item) => (
-              <div key={item.text} className="flex items-center gap-2 text-slate-400 text-sm">
-                <span className="text-[#ff7300]">{item.icon}</span>
-                {item.text}
+          <Spotlight
+            className="-top-40 left-0 md:left-60 md:-top-20"
+            fill="white"
+          />
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10 text-left">
+            {/* Left content */}
+            <div className="col-span-12 lg:col-span-7">
+              <div className="flex justify-start mb-6">
+                <Trophy size={40} className="text-[#ffd700]" style={{ filter: 'drop-shadow(0 0 12px #ffd70088)' }} />
               </div>
-            ))}
+              <p className="text-lg md:text-xl text-slate-300 leading-relaxed font-light">
+                Yuva Tech-Fest Hackathon is a{' '}
+                <span className="text-[#ff7300] font-semibold">36-hour marathon</span> of relentless
+                innovation. Assemble your team, choose a challenge track, and build a solution that
+                could change the world. Guided by{' '}
+                <span className="text-[#ffb700] font-semibold">industry mentors</span>, judged by
+                experts, and celebrated by the entire SRM community.
+              </p>
+              <div className="flex flex-wrap gap-6 mt-8">
+                {[
+                  { icon: <MapPin size={14} />, text: 'SRM IST, Tiruchirappalli' },
+                  { icon: <Calendar size={14} />, text: '36 Hours · Hackathon Format' },
+                  { icon: <Trophy size={14} />, text: 'Prize Pool ₹1 Lakh+' },
+                ].map((item) => (
+                  <div key={item.text} className="flex items-center gap-2 text-slate-400 text-sm">
+                    <span className="text-[#ff7300]">{item.icon}</span>
+                    {item.text}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Right content - Spline Scene */}
+            <div className="col-span-12 lg:col-span-5 w-full h-[350px] relative">
+              <SplineScene
+                scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
+                className="w-full h-full"
+              />
+            </div>
           </div>
         </motion.div>
 

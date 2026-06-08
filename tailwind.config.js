@@ -26,8 +26,19 @@ module.exports = {
         'float': 'float 6s ease-in-out infinite',
         'scan-line': 'scanLine 3s linear infinite',
         'border-glow': 'borderGlow 2s ease-in-out infinite',
+        spotlight: "spotlight 2s ease .75s 1 normal forwards",
       },
       keyframes: {
+        spotlight: {
+          "0%": {
+            opacity: 0,
+            transform: "translate(-72%, -62%) scale(0.5)",
+          },
+          "100%": {
+            opacity: 1,
+            transform: "translate(-50%, -40%) scale(1)",
+          },
+        },
         pulseGlow: {
           '0%, 100%': { boxShadow: '0 0 20px #00d4ff44' },
           '50%': { boxShadow: '0 0 60px #00d4ffaa, 0 0 100px #00d4ff44' },
