@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion'
 import { useInView } from 'framer-motion'
 import { useRef } from 'react'
-import { Code2, Globe, Cpu, Shield, Lightbulb, Rocket, Calendar, MapPin, Trophy } from 'lucide-react'
+import { Code2, Globe, Cpu, Shield, Lightbulb, Rocket, Calendar, MapPin, Trophy, Github, Linkedin, ClipboardList, CheckCircle2, Zap, Users, Upload } from 'lucide-react'
 import { SplineScene } from '@/components/ui/splite'
 import { Spotlight } from '@/components/ui/spotlight'
 
@@ -19,12 +19,47 @@ const themes = [
 ]
 
 const timeline = [
-  { date: 'TBA', event: 'Registration Opens', desc: 'Applications go live on the portal', icon: '📋' },
-  { date: 'TBA', event: 'Team Confirmation', desc: 'Shortlisted teams receive confirmation', icon: '✅' },
-  { date: 'TBA', event: 'Hackathon Kickoff', desc: '36 hours of intense building begins', icon: '⚡' },
-  { date: 'TBA', event: 'Mentoring Sessions', desc: 'Industry experts guide your project', icon: '🎯' },
-  { date: 'TBA', event: 'Final Submission', desc: 'Submit your project & presentation deck', icon: '🚀' },
-  { date: 'TBA', event: 'Grand Finale', desc: 'Demo day, judging & prize ceremony', icon: '🏆' },
+  { date: 'TBA', event: 'Registration Opens', desc: 'Applications go live on the portal', icon: <ClipboardList size={20} /> },
+  { date: 'TBA', event: 'Team Confirmation', desc: 'Shortlisted teams receive confirmation', icon: <CheckCircle2 size={20} /> },
+  { date: 'TBA', event: 'Hackathon Kickoff', desc: '36 hours of intense building begins', icon: <Zap size={20} /> },
+  { date: 'TBA', event: 'Mentoring Sessions', desc: 'Industry experts guide your project', icon: <Users size={20} /> },
+  { date: 'TBA', event: 'Final Submission', desc: 'Submit your project & presentation deck', icon: <Upload size={20} /> },
+  { date: 'TBA', event: 'Grand Finale', desc: 'Demo day, judging & prize ceremony', icon: <Trophy size={20} /> },
+]
+
+const team = [
+  {
+    name: 'Sudev Krishna',
+    role: 'Lead Organizer / Developer',
+    image: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=400&h=400',
+    github: 'https://github.com',
+    linkedin: 'https://linkedin.com',
+    color: '#ff7300',
+  },
+  {
+    name: 'Aarav Sharma',
+    role: 'Technical Head',
+    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400&h=400',
+    github: 'https://github.com',
+    linkedin: 'https://linkedin.com',
+    color: '#ffb700',
+  },
+  {
+    name: 'Ananya Iyer',
+    role: 'Design Lead',
+    image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=400&h=400',
+    github: 'https://github.com',
+    linkedin: 'https://linkedin.com',
+    color: '#ff3c00',
+  },
+  {
+    name: 'Rohan Verma',
+    role: 'Operations Manager',
+    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=400&h=400',
+    github: 'https://github.com',
+    linkedin: 'https://linkedin.com',
+    color: '#ff6b35',
+  },
 ]
 
 // ─── Section Title ────────────────────────────────────────────────────────────
@@ -92,7 +127,7 @@ function ThemeCard({ theme, index }: { theme: typeof themes[0]; index: number })
 // Extracted as a proper component to satisfy React's Rules of Hooks
 // (hooks cannot be called inside .map() callbacks)
 
-type TimelineEntry = { date: string; event: string; desc: string; icon: string }
+type TimelineEntry = { date: string; event: string; desc: string; icon: React.ReactNode }
 
 function TimelineItem({ item, index }: { item: TimelineEntry; index: number }) {
   const ref = useRef(null)
@@ -102,22 +137,101 @@ function TimelineItem({ item, index }: { item: TimelineEntry; index: number }) {
   return (
     <motion.div
       ref={ref}
-      className={`relative flex items-center gap-6 md:gap-0 ${isLeft ? 'md:justify-start' : 'md:justify-end'} mb-8`}
+      className={`relative flex items-center gap-6 md:gap-0 ${isLeft ? 'md:justify-start' : 'md:justify-end'} mb-10`}
       initial={{ opacity: 0, x: isLeft ? -30 : 30 }}
       animate={isInView ? { opacity: 1, x: 0 } : {}}
       transition={{ duration: 0.6, delay: index * 0.08 }}
     >
-      <div className={`glass-card rounded-lg p-5 md:w-[44%] flex gap-4 items-start ${!isLeft ? 'md:flex-row-reverse md:text-right' : ''}`}>
-        <div className="text-2xl flex-shrink-0">{item.icon}</div>
-        <div className="flex-1">
-          <p className="font-mono text-[10px] text-[#ff7300] tracking-widest mb-1">{item.date}</p>
-          <h4 className="font-orbitron text-sm font-bold text-white mb-1">{item.event}</h4>
-          <p className="text-slate-400 text-xs leading-relaxed">{item.desc}</p>
+      {/* Horizontal connector line on desktop */}
+      <div className={`hidden md:block absolute top-1/2 -translate-y-1/2 h-px bg-gradient-to-r from-orange-500/20 to-transparent ${isLeft ? 'right-[50%] w-[5%]' : 'left-[50%] w-[5%]'}`} />
+
+      {/* Card container */}
+      <div className="glass-card rounded-xl p-5 md:w-[45%] flex gap-4 items-start group relative border border-orange-500/10 hover:border-orange-500/30 transition-all duration-300">
+        {/* Index counter */}
+        <div className="absolute top-3 right-4 font-mono text-[9px] text-orange-500/30 group-hover:text-orange-500/60 transition-colors">
+          // {(index + 1).toString().padStart(2, '0')}
+        </div>
+
+        {/* Icon wrapper */}
+        <div className="flex-shrink-0 text-slate-400 bg-orange-500/5 p-2.5 rounded-xl border border-orange-500/10 group-hover:border-[#ff7300]/30 group-hover:text-[#ff7300] transition-colors duration-300 shadow-inner">
+          {item.icon}
+        </div>
+
+        {/* Text content */}
+        <div className="flex-1 text-left">
+          <div className="flex flex-col items-start">
+            <span className="inline-block px-2.5 py-0.5 rounded-full text-[9px] font-mono font-semibold tracking-widest bg-orange-500/10 border border-orange-500/20 text-[#ff7300] mb-2 uppercase">
+              {item.date}
+            </span>
+            <h4 className="font-orbitron text-sm md:text-base font-bold text-white mb-1.5 group-hover:text-[#ff7300] transition-colors duration-300">
+              {item.event}
+            </h4>
+            <p className="text-slate-400 text-xs leading-relaxed font-light">
+              {item.desc}
+            </p>
+          </div>
         </div>
       </div>
+
       {/* Center dot on the vertical line */}
-      <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-[#020408] border-2 border-[#ff7300] items-center justify-center">
+      <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-[#020408] border-2 border-[#ff7300] items-center justify-center z-20 shadow-[0_0_8px_rgba(255,115,0,0.5)]">
         <div className="w-1.5 h-1.5 rounded-full bg-[#ff7300] animate-pulse" />
+      </div>
+    </motion.div>
+  )
+}
+
+// ─── Team Member Card ─────────────────────────────────────────────────────────
+
+function TeamMemberCard({ member, index }: { member: typeof team[0]; index: number }) {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: '-60px' })
+
+  return (
+    <motion.div
+      ref={ref}
+      className="glass-card corner-bracket rounded-xl p-4 md:p-6 flex flex-col items-center text-center group cursor-default"
+      initial={{ opacity: 0, y: 40 }}
+      animate={isInView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.6, delay: index * 0.1 }}
+    >
+      <div 
+        className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full overflow-hidden mb-3 md:mb-4 p-0.5 transition-all duration-500 group-hover:scale-105"
+        style={{ 
+          background: `linear-gradient(135deg, ${member.color}, transparent)`,
+          boxShadow: `0 0 15px ${member.color}33`
+        }}
+      >
+        <img 
+          src={member.image} 
+          alt={member.name} 
+          className="w-full h-full object-cover rounded-full grayscale group-hover:grayscale-0 transition-all duration-500"
+        />
+      </div>
+      <h3 className="font-orbitron text-xs sm:text-sm md:text-base font-bold text-white mb-1 group-hover:text-[#ff7300] transition-colors duration-300 line-clamp-1">
+        {member.name}
+      </h3>
+      <p className="font-mono text-[8px] sm:text-[9px] md:text-[10px] text-slate-400 tracking-wider mb-3 md:mb-4 uppercase line-clamp-1">
+        {member.role}
+      </p>
+      
+      <div className="flex gap-3 md:gap-4 items-center mt-auto opacity-60 group-hover:opacity-100 transition-opacity duration-300">
+        <a 
+          href={member.github} 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="text-slate-400 hover:text-white transition-colors"
+        >
+          <Github size={14} className="md:w-4 md:h-4" />
+        </a>
+        <a 
+          href={member.linkedin} 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="text-slate-400 hover:text-white transition-colors"
+        >
+          <Linkedin size={14} className="md:w-4 md:h-4" />
+        </a>
       </div>
     </motion.div>
   )
@@ -147,7 +261,7 @@ export default function AboutSection() {
 
         {/* Mission statement card */}
         <motion.div
-          className="glass-card rounded-xl p-8 md:p-12 mb-20 relative overflow-hidden max-w-6xl mx-auto"
+          className="glass-card rounded-xl p-5 sm:p-8 md:p-12 mb-20 relative overflow-hidden max-w-6xl mx-auto"
           initial={{ opacity: 0, scale: 0.97 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true, margin: '-60px' }}
@@ -160,11 +274,11 @@ export default function AboutSection() {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10 text-left">
             {/* Left content */}
-            <div className="col-span-12 lg:col-span-7">
-              <div className="flex justify-start mb-6">
-                <Trophy size={40} className="text-[#ffd700]" style={{ filter: 'drop-shadow(0 0 12px #ffd70088)' }} />
+            <div className="col-span-1 lg:col-span-7 min-w-0">
+              <div className="flex justify-start mb-4 md:mb-6">
+                <Trophy size={36} className="text-[#ffd700] md:w-10 md:h-10" style={{ filter: 'drop-shadow(0 0 12px #ffd70088)' }} />
               </div>
-              <p className="text-lg md:text-xl text-slate-300 leading-relaxed font-light">
+              <p className="text-sm sm:text-base md:text-lg text-slate-300 leading-relaxed font-light">
                 Yuva Tech-Fest Hackathon is a{' '}
                 <span className="text-[#ff7300] font-semibold">36-hour marathon</span> of relentless
                 innovation. Assemble your team, choose a challenge track, and build a solution that
@@ -172,13 +286,13 @@ export default function AboutSection() {
                 <span className="text-[#ffb700] font-semibold">industry mentors</span>, judged by
                 experts, and celebrated by the entire SRM community.
               </p>
-              <div className="flex flex-wrap gap-6 mt-8">
+              <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-6 mt-6 md:mt-8">
                 {[
                   { icon: <MapPin size={14} />, text: 'SRM IST, Tiruchirappalli' },
                   { icon: <Calendar size={14} />, text: '36 Hours · Hackathon Format' },
                   { icon: <Trophy size={14} />, text: 'Prize Pool ₹1 Lakh+' },
                 ].map((item) => (
-                  <div key={item.text} className="flex items-center gap-2 text-slate-400 text-sm">
+                  <div key={item.text} className="flex items-center gap-2 text-slate-400 text-xs md:text-sm">
                     <span className="text-[#ff7300]">{item.icon}</span>
                     {item.text}
                   </div>
@@ -187,7 +301,7 @@ export default function AboutSection() {
             </div>
 
             {/* Right content - Spline Scene */}
-            <div className="col-span-12 lg:col-span-5 w-full h-[350px] relative">
+            <div className="hidden lg:block lg:col-span-5 w-full h-[350px] relative overflow-hidden min-w-0">
               <SplineScene
                 scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
                 className="w-full h-full"
@@ -214,7 +328,7 @@ export default function AboutSection() {
 
         <div className="relative max-w-3xl mx-auto">
           {/* Vertical center line */}
-          <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-[#ff730033] to-transparent -translate-x-1/2 hidden md:block" />
+          <div className="absolute left-1/2 top-0 bottom-0 w-[2px] bg-gradient-to-b from-transparent via-[#ff730044] to-transparent -translate-x-1/2 hidden md:block shadow-[0_0_8px_rgba(255,115,0,0.2)]" />
           <div className="flex flex-col gap-0">
             {timeline.map((item, i) => (
               <TimelineItem key={item.event} item={item} index={i} />
@@ -255,6 +369,21 @@ export default function AboutSection() {
             </motion.div>
           ))}
         </motion.div>
+
+        {/* Meet the Team */}
+        <div className="mt-32">
+          <SectionTitle
+            tag="// CORE TEAM"
+            title="Meet the Organizers"
+            subtitle="The minds behind Yuva Tech-Fest Hackathon, working to bring you the best builder experience."
+          />
+          
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 max-w-6xl mx-auto">
+            {team.map((member, i) => (
+              <TeamMemberCard key={member.name} member={member} index={i} />
+            ))}
+          </div>
+        </div>
 
       </div>
     </section>

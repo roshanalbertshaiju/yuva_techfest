@@ -1,5 +1,6 @@
 import React from 'react';
 import Hero from "@/components/ui/animated-shader-hero";
+import { Sparkles } from 'lucide-react';
 
 // Demo Component showing how to use the Hero
 const HeroDemo: React.FC = () => {
@@ -18,7 +19,7 @@ const HeroDemo: React.FC = () => {
       <Hero
         trustBadge={{
           text: "Trusted by forward-thinking teams.",
-          icons: ["✨"]
+          icon: <Sparkles size={14} className="text-orange-400" />
         }}
         headline={{
           line1: "Launch Your",
@@ -48,7 +49,7 @@ const HeroDemo: React.FC = () => {
 {`<Hero
   trustBadge={{
     text: "Your trust badge text",
-    icons: ["🚀", "⭐", "✨"] // optional
+    icon: <Sparkles size={14} /> // optional
   }}
   headline={{
     line1: "Your First Line",

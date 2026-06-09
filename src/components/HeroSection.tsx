@@ -2,6 +2,8 @@
 
 import React from 'react'
 import Hero from './ui/animated-shader-hero'
+import { GraduationCap } from 'lucide-react'
+import CountdownTimer from './ui/countdown-timer'
 
 export default function HeroSection() {
   const handleRegisterStudent = () => {
@@ -19,7 +21,7 @@ export default function HeroSection() {
       id="home"
       trustBadge={{
         text: "SRM IST TIRUCHIRAPPALLI • 2025",
-        icons: ["✨"]
+        icon: <GraduationCap size={14} className="text-[#ff7300] animate-pulse" />
       }}
       headline={{
         line1: "YUVA TECH-FEST",
@@ -36,6 +38,8 @@ export default function HeroSection() {
           onClick: handleRegisterSponsor
         }
       }}
-    />
+    >
+      <CountdownTimer />
+    </Hero>
   )
 }

@@ -5,7 +5,7 @@ interface HeroProps {
   id?: string;
   trustBadge?: {
     text: string;
-    icons?: string[];
+    icon?: React.ReactNode;
   };
   headline: {
     line1: string;
@@ -23,6 +23,7 @@ interface HeroProps {
     };
   };
   className?: string;
+  children?: React.ReactNode;
 }
 
 const defaultShaderSource = `#version 300 es
@@ -445,12 +446,13 @@ const Hero: React.FC<HeroProps> = ({
   headline,
   subtitle,
   buttons,
-  className = ""
+  className = "",
+  children
 }) => {
   const canvasRef = useShaderBackground();
 
   return (
-    <div id={id} className={`relative w-full h-screen overflow-hidden bg-transparent ${className}`}>
+    <div id={id} className={`relative w-full min-h-screen overflow-x-hidden bg-transparent ${className}`}>
       <canvas
         ref={canvasRef}
         className="fixed inset-0 w-full h-full object-cover touch-none -z-10"
@@ -458,26 +460,18 @@ const Hero: React.FC<HeroProps> = ({
       />
       
       {/* Hero Content Overlay */}
-      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-white">
+      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen w-full text-white py-24 px-4">
         {/* Trust Badge */}
         {trustBadge && (
           <div className="mb-8 animate-fade-in-down">
-            <div className="flex items-center gap-2 px-6 py-3 bg-orange-500/10 backdrop-blur-md border border-orange-300/30 rounded-full text-sm">
-              {trustBadge.icons && (
-                <div className="flex">
-                  {trustBadge.icons.map((icon, index) => (
-                    <span key={index} className={`text-${index === 0 ? 'yellow' : index === 1 ? 'orange' : 'amber'}-300`}>
-                      {icon}
-                    </span>
-                  ))}
-                </div>
-              )}
-              <span className="text-orange-100">{trustBadge.text}</span>
+            <div className="flex items-center gap-2 px-5 py-2.5 bg-orange-500/5 backdrop-blur-md border border-orange-500/20 hover:border-orange-500/40 rounded-full text-[10px] md:text-xs font-mono tracking-widest text-orange-200/90 uppercase transition-colors duration-300">
+              {trustBadge.icon}
+              <span>{trustBadge.text}</span>
             </div>
           </div>
         )}
 
-        <div className="text-center space-y-6 max-w-5xl mx-auto px-4">
+        <div className="text-center space-y-6 max-w-5xl mx-auto px-4 flex flex-col items-center">
           {/* Main Heading with Animation */}
           <div className="space-y-2">
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold bg-gradient-to-r from-orange-300 via-yellow-400 to-amber-300 bg-clip-text text-transparent animate-fade-in-up animation-delay-200">
@@ -514,6 +508,13 @@ const Hero: React.FC<HeroProps> = ({
                   {buttons.secondary.text}
                 </button>
               )}
+            </div>
+          )}
+
+          {/* Custom children (e.g. countdown timer) */}
+          {children && (
+            <div className="w-full animate-fade-in-up animation-delay-1000">
+              {children}
             </div>
           )}
         </div>
