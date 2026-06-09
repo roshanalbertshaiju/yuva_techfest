@@ -88,7 +88,7 @@ const timeline = [
 
 const team = [
   {
-    name: 'Sudev Krishna',
+    name: 'Abhinav Nayak',
     role: 'Lead Organizer / Developer',
     image: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=400&h=400',
     github: 'https://github.com',
