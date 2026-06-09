@@ -1,8 +1,7 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import { useInView } from 'framer-motion'
-import { useRef } from 'react'
+import { useState, useRef } from 'react'
+import { motion, AnimatePresence, useInView } from 'framer-motion'
 import { Code2, Globe, Cpu, Shield, Lightbulb, Rocket, Calendar, MapPin, Trophy, Github, Linkedin, ClipboardList, CheckCircle2, Zap, Users, Upload } from 'lucide-react'
 import { SplineScene } from '@/components/ui/splite'
 import { Spotlight } from '@/components/ui/spotlight'
@@ -19,12 +18,72 @@ const themes = [
 ]
 
 const timeline = [
-  { date: 'TBA', event: 'Registration Opens', desc: 'Applications go live on the portal', icon: <ClipboardList size={20} /> },
-  { date: 'TBA', event: 'Team Confirmation', desc: 'Shortlisted teams receive confirmation', icon: <CheckCircle2 size={20} /> },
-  { date: 'TBA', event: 'Hackathon Kickoff', desc: '36 hours of intense building begins', icon: <Zap size={20} /> },
-  { date: 'TBA', event: 'Mentoring Sessions', desc: 'Industry experts guide your project', icon: <Users size={20} /> },
-  { date: 'TBA', event: 'Final Submission', desc: 'Submit your project & presentation deck', icon: <Upload size={20} /> },
-  { date: 'TBA', event: 'Grand Finale', desc: 'Demo day, judging & prize ceremony', icon: <Trophy size={20} /> },
+  { 
+    date: 'TBA', 
+    event: 'Registration Opens', 
+    desc: 'Applications go live on the portal', 
+    icon: <ClipboardList size={20} />,
+    details: [
+      "Form teams of 2 to 4 members to compete",
+      "Submit academic details and developer profiles",
+      "No registration fee required for participation"
+    ]
+  },
+  { 
+    date: 'TBA', 
+    event: 'Team Confirmation', 
+    desc: 'Shortlisted teams receive confirmation', 
+    icon: <CheckCircle2 size={20} />,
+    details: [
+      "Teams shortlisted based on profile and tech stack compatibility",
+      "Receive official confirmation emails and joining invite to Discord server",
+      "RSVP to confirm attendance and lock team slots"
+    ]
+  },
+  { 
+    date: 'TBA', 
+    event: 'Hackathon Kickoff', 
+    desc: '36 hours of intense building begins', 
+    icon: <Zap size={20} />,
+    details: [
+      "Opening ceremony with keynote addresses from industry pioneers",
+      "Problem statements, tracking tracks, and API partners announced",
+      "Start of the 36-hour coding sprint timer"
+    ]
+  },
+  { 
+    date: 'TBA', 
+    event: 'Mentoring Sessions', 
+    desc: 'Industry experts guide your project', 
+    icon: <Users size={20} />,
+    details: [
+      "Direct access to top developers, designers, and industry mentors",
+      "Required checkpoint reviews at the 12-hour and 24-hour marks",
+      "Refine project directions and presentation slide deck details"
+    ]
+  },
+  { 
+    date: 'TBA', 
+    event: 'Final Submission', 
+    desc: 'Submit your project & presentation deck', 
+    icon: <Upload size={20} />,
+    details: [
+      "Stage fully working code on a public GitHub repository",
+      "Submit a short 3-minute video demonstration highlighting the MVP",
+      "Finalize project slides for the judging presentations"
+    ]
+  },
+  { 
+    date: 'TBA', 
+    event: 'Grand Finale', 
+    desc: 'Demo day, judging & prize ceremony', 
+    icon: <Trophy size={20} />,
+    details: [
+      "Pitch live to a panel of expert judges and venture capitalists",
+      "5-minute presentation followed by a 3-minute Q&A session",
+      "Winner announcement and cash prize distribution ceremony"
+    ]
+  },
 ]
 
 const team = [
@@ -127,57 +186,123 @@ function ThemeCard({ theme, index }: { theme: typeof themes[0]; index: number })
 // Extracted as a proper component to satisfy React's Rules of Hooks
 // (hooks cannot be called inside .map() callbacks)
 
-type TimelineEntry = { date: string; event: string; desc: string; icon: React.ReactNode }
+interface TimelineEntry {
+  date: string
+  event: string
+  desc: string
+  icon: React.ReactNode
+  details: string[]
+}
 
-function TimelineItem({ item, index }: { item: TimelineEntry; index: number }) {
+function TimelineItem({ 
+  item, 
+  index, 
+  isActive, 
+  onClick 
+}: { 
+  item: TimelineEntry
+  index: number
+  isActive: boolean
+  onClick: () => void 
+}) {
   const ref = useRef(null)
-  const isInView = useInView(ref, { once: true, margin: '-60px' })
   const isLeft = index % 2 === 0
 
   return (
-    <motion.div
+    <div
       ref={ref}
-      className={`relative flex items-center gap-6 md:gap-0 ${isLeft ? 'md:justify-start' : 'md:justify-end'} mb-10`}
-      initial={{ opacity: 0, x: isLeft ? -30 : 30 }}
-      animate={isInView ? { opacity: 1, x: 0 } : {}}
-      transition={{ duration: 0.6, delay: index * 0.08 }}
+      className={`relative flex items-center gap-6 md:gap-0 ${isLeft ? 'md:justify-start' : 'md:justify-end'} mb-10 cursor-pointer`}
+      onClick={onClick}
     >
       {/* Horizontal connector line on desktop */}
-      <div className={`hidden md:block absolute top-1/2 -translate-y-1/2 h-px bg-gradient-to-r from-orange-500/20 to-transparent ${isLeft ? 'right-[50%] w-[5%]' : 'left-[50%] w-[5%]'}`} />
+      <div className={`hidden md:block absolute top-[52px] h-px transition-all duration-500 ${
+        isLeft ? 'right-[50%] w-[5%]' : 'left-[50%] w-[5%]'
+      } ${
+        isActive 
+          ? 'bg-gradient-to-r from-orange-500 to-orange-400 shadow-[0_0_8px_#ff7300]' 
+          : 'bg-gradient-to-r from-orange-500/20 to-transparent'
+      }`} />
 
       {/* Card container */}
-      <div className="glass-card rounded-xl p-5 md:w-[45%] flex gap-4 items-start group relative border border-orange-500/10 hover:border-orange-500/30 transition-all duration-300">
+      <motion.div 
+        layout
+        className={`glass-card rounded-2xl p-6 md:w-[45%] flex gap-4 items-start group relative border transition-all duration-500 ${
+          isActive 
+            ? 'border-orange-500/50 bg-[#ff7300]/10 shadow-[0_0_30px_rgba(255,115,0,0.15)]' 
+            : 'border-orange-500/10 hover:border-orange-500/30'
+        }`}
+      >
         {/* Index counter */}
-        <div className="absolute top-3 right-4 font-mono text-[9px] text-orange-500/30 group-hover:text-orange-500/60 transition-colors">
+        <div className={`absolute top-3 right-4 font-mono text-[9px] transition-colors duration-300 ${
+          isActive ? 'text-orange-400' : 'text-orange-500/30 group-hover:text-orange-500/60'
+        }`}>
           // {(index + 1).toString().padStart(2, '0')}
         </div>
 
         {/* Icon wrapper */}
-        <div className="flex-shrink-0 text-slate-400 bg-orange-500/5 p-2.5 rounded-xl border border-orange-500/10 group-hover:border-[#ff7300]/30 group-hover:text-[#ff7300] transition-colors duration-300 shadow-inner">
+        <div className={`flex-shrink-0 p-2.5 rounded-xl border transition-all duration-500 ${
+          isActive 
+            ? 'text-black bg-gradient-to-br from-orange-500 to-amber-500 border-transparent shadow-[0_0_15px_rgba(255,115,0,0.4)]' 
+            : 'text-slate-400 bg-orange-500/5 border-orange-500/10 group-hover:border-[#ff7300]/30 group-hover:text-[#ff7300]'
+        }`}>
           {item.icon}
         </div>
 
         {/* Text content */}
         <div className="flex-1 text-left">
           <div className="flex flex-col items-start">
-            <span className="inline-block px-2.5 py-0.5 rounded-full text-[9px] font-mono font-semibold tracking-widest bg-orange-500/10 border border-orange-500/20 text-[#ff7300] mb-2 uppercase">
+            <span className={`inline-block px-2.5 py-0.5 rounded-full text-[9px] font-mono font-semibold tracking-widest border mb-2 uppercase transition-all duration-500 ${
+              isActive 
+                ? 'bg-orange-500 text-black border-transparent shadow-[0_0_10px_rgba(255,115,0,0.3)]' 
+                : 'bg-orange-500/10 border-orange-500/20 text-[#ff7300]'
+            }`}>
               {item.date}
             </span>
-            <h4 className="font-orbitron text-sm md:text-base font-bold text-white mb-1.5 group-hover:text-[#ff7300] transition-colors duration-300">
+            <h4 className={`font-orbitron text-sm md:text-base font-bold mb-1.5 transition-colors duration-300 ${
+              isActive ? 'text-[#ff7300]' : 'text-white group-hover:text-[#ff7300]'
+            }`}>
               {item.event}
             </h4>
-            <p className="text-slate-400 text-xs leading-relaxed font-light">
+            <p className="text-slate-400 text-xs leading-relaxed font-light mb-1">
               {item.desc}
             </p>
+
+            {/* Expanded Details section */}
+            <AnimatePresence initial={false}>
+              {isActive && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="overflow-hidden w-full border-t border-orange-500/10 mt-4 pt-4"
+                >
+                  <ul className="space-y-2.5">
+                    {item.details.map((detail, dIdx) => (
+                      <li key={dIdx} className="flex items-start gap-2 text-[11px] text-slate-300 leading-normal">
+                        <span className="text-orange-500 mt-1 font-mono text-[9px]">•</span>
+                        <span>{detail}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Center dot on the vertical line */}
-      <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-[#020408] border-2 border-[#ff7300] items-center justify-center z-20 shadow-[0_0_8px_rgba(255,115,0,0.5)]">
-        <div className="w-1.5 h-1.5 rounded-full bg-[#ff7300] animate-pulse" />
+      <div className={`hidden md:flex absolute left-1/2 -translate-x-1/2 w-5 h-5 rounded-full items-center justify-center z-20 transition-all duration-500 ${
+        isActive 
+          ? 'bg-orange-500 border-2 border-amber-400 shadow-[0_0_15px_#ff7300]' 
+          : 'bg-[#020408] border-2 border-[#ff7300] shadow-[0_0_8px_rgba(255,115,0,0.3)]'
+      }`}>
+        <div className={`w-2 h-2 rounded-full transition-all duration-500 ${
+          isActive ? 'bg-black' : 'bg-[#ff7300] animate-pulse'
+        }`} />
       </div>
-    </motion.div>
+    </div>
   )
 }
 
@@ -240,6 +365,7 @@ function TeamMemberCard({ member, index }: { member: typeof team[0]; index: numb
 // ─── About Section ────────────────────────────────────────────────────────────
 
 export default function AboutSection() {
+  const [activeStep, setActiveStep] = useState<number>(0)
   const statsRef = useRef(null)
   const statsInView = useInView(statsRef, { once: true, margin: '-60px' })
 
@@ -331,7 +457,13 @@ export default function AboutSection() {
           <div className="absolute left-1/2 top-0 bottom-0 w-[2px] bg-gradient-to-b from-transparent via-[#ff730044] to-transparent -translate-x-1/2 hidden md:block shadow-[0_0_8px_rgba(255,115,0,0.2)]" />
           <div className="flex flex-col gap-0">
             {timeline.map((item, i) => (
-              <TimelineItem key={item.event} item={item} index={i} />
+              <TimelineItem 
+                key={item.event} 
+                item={item} 
+                index={i} 
+                isActive={activeStep === i}
+                onClick={() => setActiveStep(i)}
+              />
             ))}
           </div>
         </div>
