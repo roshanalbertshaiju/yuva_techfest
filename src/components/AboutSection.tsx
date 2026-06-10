@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence, useInView } from 'framer-motion'
 import { Code2, Globe, Cpu, Shield, Lightbulb, Rocket, Calendar, MapPin, Trophy, Github, Linkedin, ClipboardList, CheckCircle2, Zap, Users, Upload } from 'lucide-react'
 import { Spotlight } from '@/components/ui/spotlight'
@@ -294,7 +294,10 @@ function TimelineItem({
       </motion.div>
 
       {/* Center dot on the vertical line */}
-      <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center justify-center z-20">
+      <div 
+        data-timeline-dot={index}
+        className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center justify-center z-20"
+      >
         {index < currentLiveMilestoneIndex && (
           <div 
             className={`rounded-full bg-orange-500 shadow-[0_0_10px_#ff7300] transition-all duration-500 ${
@@ -400,6 +403,51 @@ export default function AboutSection() {
   const statsRef = useRef(null)
   const statsInView = useInView(statsRef, { once: true, margin: '-60px' })
 
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [lineStyles, setLineStyles] = useState({ top: 0, activeHeight: 0, totalHeight: 0 })
+
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+
+    const updateLine = () => {
+      const firstDot = container.querySelector('[data-timeline-dot="0"]') as HTMLElement
+      const currentDot = container.querySelector(`[data-timeline-dot="${currentLiveMilestoneIndex}"]`) as HTMLElement
+      const lastDot = container.querySelector(`[data-timeline-dot="${timeline.length - 1}"]`) as HTMLElement
+
+      if (firstDot && currentDot && lastDot) {
+        const containerRect = container.getBoundingClientRect()
+        const firstDotRect = firstDot.getBoundingClientRect()
+        const currentDotRect = currentDot.getBoundingClientRect()
+        const lastDotRect = lastDot.getBoundingClientRect()
+
+        const firstCenterY = (firstDotRect.top + firstDotRect.height / 2) - containerRect.top
+        const currentCenterY = (currentDotRect.top + currentDotRect.height / 2) - containerRect.top
+        const lastCenterY = (lastDotRect.top + lastDotRect.height / 2) - containerRect.top
+
+        setLineStyles({
+          top: firstCenterY,
+          activeHeight: Math.max(0, currentCenterY - firstCenterY),
+          totalHeight: Math.max(0, lastCenterY - firstCenterY)
+        })
+      }
+    }
+
+    const resizeObserver = new ResizeObserver(() => {
+      updateLine()
+    })
+    resizeObserver.observe(container)
+
+    window.addEventListener('resize', updateLine)
+    const timer = setTimeout(updateLine, 50)
+
+    return () => {
+      resizeObserver.disconnect()
+      window.removeEventListener('resize', updateLine)
+      clearTimeout(timer)
+    }
+  }, [activeStep])
+
   return (
     <section id="about" className="relative py-28 bg-[#020408]/80 backdrop-blur-[4px] overflow-hidden">
       {/* Background */}
@@ -474,16 +522,22 @@ export default function AboutSection() {
           subtitle="Mark your calendar. Every milestone counts in the race to innovate."
         />
 
-        <div className="relative max-w-3xl mx-auto">
+        <div ref={containerRef} className="relative max-w-3xl mx-auto">
           {/* Vertical center line container */}
-          <div className="absolute left-1/2 top-[48px] bottom-[48px] w-[2px] -translate-x-1/2 hidden md:block">
+          <div 
+            className="absolute left-1/2 w-[2px] -translate-x-1/2 hidden md:block transition-all duration-300 ease-out"
+            style={{ 
+              top: `${lineStyles.top}px`, 
+              height: `${lineStyles.totalHeight}px` 
+            }}
+          >
             {/* Background track */}
             <div className="absolute inset-0 bg-slate-800/80 rounded" />
             {/* Active glowing track */}
             <div 
-              className="absolute top-0 left-0 w-full bg-gradient-to-b from-[#ff7300] to-[#ffb700] shadow-[0_0_10px_rgba(255,115,0,0.8)] transition-all duration-500 rounded"
+              className="absolute top-0 left-0 w-full bg-gradient-to-b from-[#ff7300] to-[#ffb700] shadow-[0_0_10px_rgba(255,115,0,0.8)] transition-all duration-300 ease-out rounded"
               style={{ 
-                height: `${(currentLiveMilestoneIndex / (timeline.length - 1)) * 100}%` 
+                height: `${lineStyles.activeHeight}px` 
               }}
             />
           </div>
