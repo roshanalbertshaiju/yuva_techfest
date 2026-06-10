@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import Navbar from '@/components/Navbar'
 import HeroSection from '@/components/HeroSection'
 import CountdownBanner from '@/components/CountdownBanner'
@@ -12,6 +13,14 @@ import ContactSection from '@/components/ContactSection'
 import Footer from '@/components/Footer'
 
 export default function Home() {
+  useEffect(() => {
+    // Prevent browser from restoring scroll position on refresh and force top scroll
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
     <main className="relative">
       {/* Scan line decorative effect */}

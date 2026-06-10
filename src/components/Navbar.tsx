@@ -54,7 +54,13 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         {/* Logo */}
         <motion.a
-          href="#home"
+          href="/"
+          onClick={(e) => {
+            if (window.location.pathname === '/') {
+              e.preventDefault();
+              window.location.reload();
+            }
+          }}
           className="flex items-center gap-3 group"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}

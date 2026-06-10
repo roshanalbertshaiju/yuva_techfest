@@ -389,17 +389,6 @@ const useShaderBackground = () => {
     }
   };
 
-  const loop = (now: number) => {
-    if (!rendererRef.current || !pointersRef.current) return;
-    
-    rendererRef.current.updateMouse(pointersRef.current.first);
-    rendererRef.current.updatePointerCount(pointersRef.current.count);
-    rendererRef.current.updatePointerCoords(pointersRef.current.coords);
-    rendererRef.current.updateMove(pointersRef.current.move);
-    rendererRef.current.render(now);
-    animationFrameRef.current = requestAnimationFrame(loop);
-  };
-
   useEffect(() => {
     if (!canvasRef.current) return;
 
@@ -418,15 +407,54 @@ const useShaderBackground = () => {
       rendererRef.current.updateShader(defaultShaderSource);
     }
     
-    loop(0);
+    let isLooping = false;
+
+    const loop = (now: number) => {
+      if (!isLooping || !rendererRef.current || !pointersRef.current) return;
+      
+      rendererRef.current.updateMouse(pointersRef.current.first);
+      rendererRef.current.updatePointerCount(pointersRef.current.count);
+      rendererRef.current.updatePointerCoords(pointersRef.current.coords);
+      rendererRef.current.updateMove(pointersRef.current.move);
+      rendererRef.current.render(now);
+      
+      animationFrameRef.current = requestAnimationFrame(loop);
+    };
+
+    const startLoop = () => {
+      if (!isLooping) {
+        isLooping = true;
+        loop(0);
+      }
+    };
+
+    const stopLoop = () => {
+      isLooping = false;
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = undefined;
+      }
+    };
+
+    // Stop loops when the hero canvas scrolled out of view to optimize performance
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          startLoop();
+        } else {
+          stopLoop();
+        }
+      },
+      { threshold: 0.0 }
+    );
+    observer.observe(canvas);
     
     window.addEventListener('resize', resize);
     
     return () => {
       window.removeEventListener('resize', resize);
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
+      observer.disconnect();
+      stopLoop();
       if (rendererRef.current) {
         rendererRef.current.reset();
       }
