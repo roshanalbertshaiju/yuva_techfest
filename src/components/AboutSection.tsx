@@ -217,7 +217,7 @@ function TimelineItem({
     >
       {/* Horizontal connector line on desktop */}
       <div className={`hidden md:block absolute top-[52px] h-px transition-all duration-500 ${
-        isLeft ? 'right-[50%] w-[5%]' : 'left-[50%] w-[5%]'
+        isLeft ? 'left-[45%] w-[5%]' : 'left-[50%] w-[5%]'
       } ${
         isActive 
           ? 'bg-gradient-to-r from-orange-500 to-orange-400 shadow-[0_0_8px_#ff7300]' 
@@ -296,7 +296,7 @@ function TimelineItem({
       {/* Center dot on the vertical line */}
       <div 
         data-timeline-dot={index}
-        className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center justify-center z-20"
+        className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center justify-center z-20 top-[42px]"
       >
         {index < currentLiveMilestoneIndex && (
           <div 
