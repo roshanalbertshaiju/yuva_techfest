@@ -38,8 +38,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${orbitron.variable} ${jetbrainsMono.variable}`}>
-      <body className="bg-[#020408] antialiased" suppressHydrationWarning>
+    <html lang="en" className={`${inter.variable} ${orbitron.variable} ${jetbrainsMono.variable} dark`}>
+      <body className="bg-[#020408] text-[#e2e8f0] antialiased" suppressHydrationWarning>
         {children}
       </body>
     </html>

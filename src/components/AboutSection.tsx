@@ -3,7 +3,6 @@
 import { useState, useRef } from 'react'
 import { motion, AnimatePresence, useInView } from 'framer-motion'
 import { Code2, Globe, Cpu, Shield, Lightbulb, Rocket, Calendar, MapPin, Trophy, Github, Linkedin, ClipboardList, CheckCircle2, Zap, Users, Upload } from 'lucide-react'
-import { SplineScene } from '@/components/ui/splite'
 import { Spotlight } from '@/components/ui/spotlight'
 
 // ─── Data ────────────────────────────────────────────────────────────────────
@@ -387,7 +386,7 @@ export default function AboutSection() {
 
         {/* Mission statement card */}
         <motion.div
-          className="glass-card rounded-xl p-5 sm:p-8 md:p-12 mb-20 relative overflow-hidden max-w-6xl mx-auto"
+          className="glass-card rounded-xl p-6 sm:p-10 md:p-14 mb-20 relative overflow-hidden max-w-4xl mx-auto border border-orange-500/10 text-center flex flex-col items-center gap-6"
           initial={{ opacity: 0, scale: 0.97 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true, margin: '-60px' }}
@@ -398,40 +397,31 @@ export default function AboutSection() {
             fill="white"
           />
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10 text-left">
-            {/* Left content */}
-            <div className="col-span-1 lg:col-span-7 min-w-0">
-              <div className="flex justify-start mb-4 md:mb-6">
-                <Trophy size={36} className="text-[#ffd700] md:w-10 md:h-10" style={{ filter: 'drop-shadow(0 0 12px #ffd70088)' }} />
-              </div>
-              <p className="text-sm sm:text-base md:text-lg text-slate-300 leading-relaxed font-light">
-                Yuva Tech-Fest Hackathon is a{' '}
-                <span className="text-[#ff7300] font-semibold">36-hour marathon</span> of relentless
-                innovation. Assemble your team, choose a challenge track, and build a solution that
-                could change the world. Guided by{' '}
-                <span className="text-[#ffb700] font-semibold">industry mentors</span>, judged by
-                experts, and celebrated by the entire SRM community.
-              </p>
-              <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-6 mt-6 md:mt-8">
-                {[
-                  { icon: <MapPin size={14} />, text: 'SRM IST, Tiruchirappalli' },
-                  { icon: <Calendar size={14} />, text: '36 Hours · Hackathon Format' },
-                  { icon: <Trophy size={14} />, text: 'Prize Pool ₹1 Lakh+' },
-                ].map((item) => (
-                  <div key={item.text} className="flex items-center gap-2 text-slate-400 text-xs md:text-sm">
-                    <span className="text-[#ff7300]">{item.icon}</span>
-                    {item.text}
-                  </div>
-                ))}
-              </div>
+          <div className="relative z-10 flex flex-col items-center">
+            <div className="flex justify-center mb-6">
+              <Trophy size={42} className="text-[#ffd700]" style={{ filter: 'drop-shadow(0 0 15px rgba(255,215,0,0.4))' }} />
             </div>
+            
+            <p className="text-base sm:text-lg md:text-xl text-slate-200 leading-relaxed font-light max-w-2xl mx-auto">
+              Yuva Tech-Fest Hackathon is a{' '}
+              <span className="text-[#ff7300] font-semibold">36-hour marathon</span> of relentless
+              innovation. Assemble your team, choose a challenge track, and build a solution that
+              could change the world. Guided by{' '}
+              <span className="text-[#ffb700] font-semibold">industry mentors</span>, judged by
+              experts, and celebrated by the entire SRM community.
+            </p>
 
-            {/* Right content - Spline Scene */}
-            <div className="hidden lg:block lg:col-span-5 w-full h-[350px] relative overflow-hidden min-w-0">
-              <SplineScene
-                scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
-                className="w-full h-full"
-              />
+            <div className="flex flex-wrap gap-4 sm:gap-8 justify-center mt-10 border-t border-slate-850 w-full pt-8">
+              {[
+                { icon: <MapPin size={16} />, text: 'SRM IST, Tiruchirappalli' },
+                { icon: <Calendar size={16} />, text: '36 Hours · In-Person' },
+                { icon: <Trophy size={16} />, text: 'Prize Pool ₹1 Lakh+' },
+              ].map((item) => (
+                <div key={item.text} className="flex items-center gap-2.5 text-slate-400 text-sm font-medium">
+                  <span className="text-[#ff7300]">{item.icon}</span>
+                  {item.text}
+                </div>
+              ))}
             </div>
           </div>
         </motion.div>

@@ -3,18 +3,18 @@
 import React from 'react'
 import Hero from './ui/animated-shader-hero'
 import { GraduationCap } from 'lucide-react'
-import CountdownTimer from './ui/countdown-timer'
+import { useRouter } from 'next/navigation'
 
 export default function HeroSection() {
+  const router = useRouter()
+
   const handleRegisterStudent = () => {
-    const el = document.getElementById('contact');
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
-  };
+    router.push('/register?type=student')
+  }
 
   const handleRegisterSponsor = () => {
-    const el = document.getElementById('contact');
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
-  };
+    router.push('/register?type=sponsor')
+  }
 
   return (
     <Hero
@@ -38,8 +38,6 @@ export default function HeroSection() {
           onClick: handleRegisterSponsor
         }
       }}
-    >
-      <CountdownTimer />
-    </Hero>
+    />
   )
 }
