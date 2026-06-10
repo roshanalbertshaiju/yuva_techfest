@@ -5,6 +5,7 @@ import HeroSection from '@/components/HeroSection'
 import CountdownBanner from '@/components/CountdownBanner'
 import AboutSection from '@/components/AboutSection'
 import InteractiveLab from '@/components/InteractiveLab'
+import PrizesSection from '@/components/PrizesSection'
 import SponsorSection from '@/components/SponsorSection'
 import FAQSection from '@/components/FAQSection'
 import ContactSection from '@/components/ContactSection'
@@ -22,6 +23,7 @@ export default function Home() {
       <CountdownBanner />
       <AboutSection />
       <InteractiveLab />
+      <PrizesSection />
       <SponsorSection />
       <FAQSection />
       <ContactSection />

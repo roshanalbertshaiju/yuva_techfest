@@ -7,6 +7,7 @@ import Image from 'next/image'
 const navLinks = [
   { label: 'Home', href: '#home' },
   { label: 'About', href: '#about' },
+  { label: 'Prizes', href: '#prizes' },
   { label: 'Sponsors', href: '#sponsors' },
   { label: 'FAQ', href: '#faq' },
   { label: 'Contact', href: '#contact' },
@@ -22,7 +23,7 @@ export default function Navbar() {
       setScrolled(window.scrollY > 40)
 
       // Determine active section
-      const sections = ['home', 'about', 'sponsors', 'faq', 'contact']
+      const sections = ['home', 'about', 'prizes', 'sponsors', 'faq', 'contact']
       const scrollPosition = window.scrollY + 140
 
       for (const sec of [...sections].reverse()) {
