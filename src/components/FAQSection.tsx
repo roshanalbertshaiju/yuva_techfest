@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { HelpCircle, ChevronDown, Search } from 'lucide-react'
+import CyberParticles from '@/components/ui/cyber-particles'
 
 const faqCategories = ['All', 'General', 'Teams', 'Participation', 'Prizes']
 
@@ -58,6 +59,7 @@ export default function FAQSection() {
 
   return (
     <section id="faq" className="relative py-28 bg-[#020408]/80 backdrop-blur-[4px] overflow-hidden border-t border-[rgba(255,115,0,0.05)]">
+      <CyberParticles />
       {/* Background Cyber Grid */}
       <div className="absolute inset-0 cyber-grid-bg opacity-10" />
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#ff730011] to-transparent" />

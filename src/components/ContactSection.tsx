@@ -4,6 +4,7 @@ import { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { useInView } from 'framer-motion'
 import { Send, Mail, MapPin, Instagram, Twitter, Linkedin, Github, CheckCircle, Loader2 } from 'lucide-react'
+import CyberParticles from '@/components/ui/cyber-particles'
 
 const socials = [
   { icon: <Instagram size={18} />, label: 'Instagram', href: 'https://instagram.com', color: '#E1306C' },
@@ -41,6 +42,7 @@ export default function ContactSection() {
 
   return (
     <section id="contact" className="relative py-28 bg-[#020408]/80 backdrop-blur-[4px] overflow-hidden">
+      <CyberParticles />
       {/* Background */}
       <div className="absolute inset-0 cyber-grid-bg opacity-20" />
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#ff730022] to-transparent" />

@@ -85,6 +85,8 @@ const timeline = [
   },
 ]
 
+const currentLiveMilestoneIndex = 0 // Registration Opens is active
+
 const team = [
   {
     name: 'Abhinav Nayak',
@@ -292,14 +294,44 @@ function TimelineItem({
       </motion.div>
 
       {/* Center dot on the vertical line */}
-      <div className={`hidden md:flex absolute left-1/2 -translate-x-1/2 w-5 h-5 rounded-full items-center justify-center z-20 transition-all duration-500 ${
-        isActive 
-          ? 'bg-orange-500 border-2 border-amber-400 shadow-[0_0_15px_#ff7300]' 
-          : 'bg-[#020408] border-2 border-[#ff7300] shadow-[0_0_8px_rgba(255,115,0,0.3)]'
-      }`}>
-        <div className={`w-2 h-2 rounded-full transition-all duration-500 ${
-          isActive ? 'bg-black' : 'bg-[#ff7300] animate-pulse'
-        }`} />
+      <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center justify-center z-20">
+        {index < currentLiveMilestoneIndex && (
+          <div 
+            className={`rounded-full bg-orange-500 shadow-[0_0_10px_#ff7300] transition-all duration-500 ${
+              isActive 
+                ? 'w-5 h-5 border-2 border-amber-300 shadow-[0_0_15px_#ff7300]' 
+                : 'w-4 h-4'
+            }`} 
+          />
+        )}
+        
+        {index === currentLiveMilestoneIndex && (
+          <div className="relative flex items-center justify-center">
+            {/* Outer double ring (ping pulse) */}
+            <div className={`absolute rounded-full border border-orange-500/40 animate-ping ${
+              isActive ? 'w-8 h-8' : 'w-7 h-7'
+            }`} />
+            {/* Middle ring */}
+            <div className={`rounded-full border-2 border-amber-400 bg-orange-950/90 shadow-[0_0_15px_#ff7300] flex items-center justify-center transition-all duration-500 ${
+              isActive ? 'w-6 h-6' : 'w-5 h-5'
+            }`}>
+              {/* Inner dot */}
+              <div className={`rounded-full bg-orange-500 animate-pulse ${
+                isActive ? 'w-2 h-2' : 'w-1.5 h-1.5'
+              }`} />
+            </div>
+          </div>
+        )}
+        
+        {index > currentLiveMilestoneIndex && (
+          <div 
+            className={`rounded-full bg-[#020408] transition-all duration-500 border-2 ${
+              isActive 
+                ? 'border-orange-500/60 shadow-[0_0_8px_rgba(255,115,0,0.3)] w-5 h-5' 
+                : 'border-slate-700/80 w-4 h-4'
+            }`}
+          />
+        )}
       </div>
     </div>
   )
@@ -443,8 +475,18 @@ export default function AboutSection() {
         />
 
         <div className="relative max-w-3xl mx-auto">
-          {/* Vertical center line */}
-          <div className="absolute left-1/2 top-0 bottom-0 w-[2px] bg-gradient-to-b from-transparent via-[#ff730044] to-transparent -translate-x-1/2 hidden md:block shadow-[0_0_8px_rgba(255,115,0,0.2)]" />
+          {/* Vertical center line container */}
+          <div className="absolute left-1/2 top-[48px] bottom-[48px] w-[2px] -translate-x-1/2 hidden md:block">
+            {/* Background track */}
+            <div className="absolute inset-0 bg-slate-800/80 rounded" />
+            {/* Active glowing track */}
+            <div 
+              className="absolute top-0 left-0 w-full bg-gradient-to-b from-[#ff7300] to-[#ffb700] shadow-[0_0_10px_rgba(255,115,0,0.8)] transition-all duration-500 rounded"
+              style={{ 
+                height: `${(currentLiveMilestoneIndex / (timeline.length - 1)) * 100}%` 
+              }}
+            />
+          </div>
           <div className="flex flex-col gap-0">
             {timeline.map((item, i) => (
               <TimelineItem 

@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { Cpu, Terminal, Disc, ShieldCheck, Database, Layers, Award, Sparkles } from 'lucide-react'
+import CyberParticles from '@/components/ui/cyber-particles'
 
 const sponsorTiers = [
   {
@@ -36,6 +37,7 @@ const sponsorTiers = [
 export default function SponsorSection() {
   return (
     <section id="sponsors" className="relative py-28 bg-[#020408]/90 backdrop-blur-[4px] overflow-hidden border-t border-[rgba(255,115,0,0.05)]">
+      <CyberParticles />
       {/* Glow Effects */}
       <div className="absolute top-1/4 left-1/4 -translate-x-1/2 w-[500px] h-[500px] rounded-full bg-[radial-gradient(circle,rgba(255,115,0,0.02)_0%,transparent_70%)] pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 w-[500px] h-[500px] rounded-full bg-[radial-gradient(circle,rgba(255,183,0,0.02)_0%,transparent_70%)] pointer-events-none" />
