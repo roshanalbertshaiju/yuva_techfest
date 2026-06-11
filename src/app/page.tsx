@@ -1,42 +1,18 @@
-'use client'
+import type { Metadata } from 'next'
+import HomeClient from './HomeClient'
 
-import { useEffect } from 'react'
-import Navbar from '@/components/Navbar'
-import HeroSection from '@/components/HeroSection'
-import CountdownBanner from '@/components/CountdownBanner'
-import AboutSection from '@/components/AboutSection'
-import InteractiveLab from '@/components/InteractiveLab'
-import PrizesSection from '@/components/PrizesSection'
-import SponsorSection from '@/components/SponsorSection'
-import FAQSection from '@/components/FAQSection'
-import ContactSection from '@/components/ContactSection'
-import Footer from '@/components/Footer'
+export const metadata: Metadata = {
+  title: 'Yuva Tech-Fest Hackathon 2025 | SRM IST Tiruchirappalli',
+  description:
+    'Join the most electrifying hackathon at SRM Institute of Science and Technology, Tiruchirappalli. Build, innovate, and compete in the Yuva Tech-Fest Hackathon.',
+  keywords: ['hackathon', 'SRM IST', 'Tiruchirappalli', 'Yuva Tech-Fest', 'tech fest', 'coding competition'],
+  openGraph: {
+    title: 'Yuva Tech-Fest Hackathon 2025 | SRM IST Tiruchirappalli',
+    description: 'The most electrifying hackathon at SRM IST Trichy — Yuva Tech-Fest Hackathon.',
+    type: 'website',
+  },
+}
 
-export default function Home() {
-  useEffect(() => {
-    // Prevent browser from restoring scroll position on refresh and force top scroll
-    if ('scrollRestoration' in window.history) {
-      window.history.scrollRestoration = 'manual';
-    }
-    window.scrollTo(0, 0);
-  }, []);
-
-  return (
-    <main className="relative">
-      {/* Scan line decorative effect */}
-      <div className="scan-line" />
-
-      <Navbar />
-
-      <HeroSection />
-      <CountdownBanner />
-      <AboutSection />
-      <InteractiveLab />
-      <PrizesSection />
-      <SponsorSection />
-      <FAQSection />
-      <ContactSection />
-      <Footer />
-    </main>
-  )
+export default function Page() {
+  return <HomeClient />
 }

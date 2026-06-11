@@ -3,42 +3,37 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 const navLinks = [
-  { label: 'Home', href: '#home' },
-  { label: 'About', href: '#about' },
-  { label: 'Prizes', href: '#prizes' },
-  { label: 'Sponsors', href: '#sponsors' },
-  { label: 'FAQ', href: '#faq' },
-  { label: 'Contact', href: '#contact' },
+  { label: 'Home', href: '/' },
+  { label: 'Events', href: '/events' },
+  { label: 'About', href: '/about' },
+  { label: 'Sponsors', href: '/sponsors' },
+  { label: 'Contact', href: '/contact' },
 ]
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
-  const [activeSection, setActiveSection] = useState('home')
   const [menuOpen, setMenuOpen] = useState(false)
+  const pathname = usePathname()
 
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 40)
-
-      // Determine active section
-      const sections = ['home', 'about', 'prizes', 'sponsors', 'faq', 'contact']
-      const scrollPosition = window.scrollY + 140
-
-      for (const sec of [...sections].reverse()) {
-        const el = document.getElementById(sec)
-        if (el && scrollPosition >= el.offsetTop) {
-          setActiveSection(sec)
-          break
-        }
-      }
     }
     window.addEventListener('scroll', handleScroll, { passive: true })
-    // Initial check
     handleScroll()
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+  const isActive = (href: string) => {
+    if (href === '/') {
+      return pathname === '/'
+    }
+    return pathname.startsWith(href)
+  }
 
   return (
     <motion.nav
@@ -53,17 +48,15 @@ export default function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         {/* Logo */}
-        <motion.a
+        <Link
           href="/"
           onClick={(e) => {
-            if (window.location.pathname === '/') {
+            if (pathname === '/') {
               e.preventDefault();
-              window.location.reload();
+              window.scrollTo({ top: 0, behavior: 'smooth' });
             }
           }}
           className="flex items-center gap-3 group"
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
         >
           <div className="relative w-12 h-12 rounded-full overflow-hidden border border-[rgba(255,115,0,0.3)] group-hover:border-[#ff7300] transition-colors duration-300 group-hover:shadow-[0_0_20px_rgba(255,115,0,0.5)]">
             <Image
@@ -83,47 +76,49 @@ export default function Navbar() {
               HACKATHON 2025
             </p>
           </div>
-        </motion.a>
+        </Link>
 
         {/* Desktop Nav */}
         <div className="hidden md:flex items-center gap-6">
           {navLinks.map((link, i) => (
-            <motion.a
+            <motion.div
               key={link.href}
-              href={link.href}
-              className={`nav-link text-slate-400 ${
-                activeSection === link.label.toLowerCase()
-                  ? 'text-[#ff7300]'
-                  : ''
-              }`}
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 * i + 0.4 }}
             >
-              <span className="text-[#ff730044] mr-1">{'>'}</span>
-              {link.label}
-              {activeSection === link.label.toLowerCase() && (
-                <motion.span
-                  className="absolute bottom-[-4px] left-0 right-0 h-[1.5px] bg-[#ff7300]"
-                  layoutId="nav-indicator"
-                />
-              )}
-            </motion.a>
+              <Link
+                href={link.href}
+                className={`nav-link text-slate-400 relative ${
+                  isActive(link.href) ? 'text-[#ff7300]' : ''
+                }`}
+              >
+                <span className="text-[#ff730044] mr-1">{'>'}</span>
+                {link.label}
+                {isActive(link.href) && (
+                  <motion.span
+                    className="absolute bottom-[-4px] left-0 right-0 h-[1.5px] bg-[#ff7300]"
+                    layoutId="nav-indicator"
+                  />
+                )}
+              </Link>
+            </motion.div>
           ))}
 
           <div className="flex items-center gap-3 border-l border-slate-800 pl-6">
-            <motion.a
-              href="/register?type=student"
-              id="nav-register-btn"
-              className="btn-glow px-5 py-2 text-xs"
+            <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.7 }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
             >
-              REGISTER NOW
-            </motion.a>
+              <Link
+                href="/register?type=student"
+                id="nav-register-btn"
+                className="btn-glow px-5 py-2 text-xs block text-center"
+              >
+                REGISTER NOW
+              </Link>
+            </motion.div>
           </div>
         </div>
 
@@ -162,22 +157,24 @@ export default function Navbar() {
           >
             <div className="px-6 py-4 flex flex-col gap-4">
               {navLinks.map((link) => (
-                <a
+                <Link
                   key={link.href}
                   href={link.href}
-                  className="nav-link text-sm py-2 text-slate-300"
+                  className={`nav-link text-sm py-2 ${
+                    isActive(link.href) ? 'text-[#ff7300]' : 'text-slate-350'
+                  }`}
                   onClick={() => setMenuOpen(false)}
                 >
                   {link.label}
-                </a>
+                </Link>
               ))}
-              <a
+              <Link
                 href="/register?type=student"
                 className="btn-glow px-5 py-3 text-xs text-center"
                 onClick={() => setMenuOpen(false)}
               >
                 REGISTER NOW
-              </a>
+              </Link>
             </div>
           </motion.div>
         )}

@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import { Cpu, Terminal, Disc, ShieldCheck, Database, Layers, Award, Sparkles } from 'lucide-react'
 import CyberParticles from '@/components/ui/cyber-particles'
+import Link from 'next/link'
 
 const sponsorTiers = [
   {
@@ -113,9 +114,9 @@ export default function SponsorSection() {
             Connect with hundreds of bright minds, showcase your products, recruit top talent, and build brand presence at SRM IST's premier coding festival.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <a href="#contact" className="btn-glow px-8 py-3 text-xs">
+            <Link href="/contact" className="btn-glow px-8 py-3 text-xs">
               BECOME A SPONSOR
-            </a>
+            </Link>
             <a href="mailto:yuvafest@srmtrichy.edu.in" className="btn-outline px-8 py-3 text-xs">
               DOWNLOAD PROSPECTUS
             </a>

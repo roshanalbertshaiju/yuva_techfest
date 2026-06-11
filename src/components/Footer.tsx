@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import Image from 'next/image'
+import Link from 'next/link'
 import { MapPin, Mail, ExternalLink } from 'lucide-react'
 
 export default function Footer() {
@@ -36,19 +37,19 @@ export default function Footer() {
             <p className="font-mono text-[10px] text-[#ff7300] tracking-widest uppercase mb-4">Quick Links</p>
             <div className="flex flex-col gap-2">
               {[
-                { label: 'Home', href: '#home' },
-                { label: 'About', href: '#about' },
-                { label: 'Themes', href: '#about' },
-                { label: 'Contact', href: '#contact' },
+                { label: 'Home', href: '/' },
+                { label: 'About', href: '/about' },
+                { label: 'Themes', href: '/events' },
+                { label: 'Contact', href: '/contact' },
               ].map((link) => (
-                <a
+                <Link
                   key={link.label}
                   href={link.href}
                   className="flex items-center gap-2 text-slate-500 text-xs hover:text-[#ff7300] transition-colors duration-300 font-mono w-fit"
                 >
                   <span className="text-[#ff730033]">›</span>
                   {link.label}
-                </a>
+                </Link>
               ))}
             </div>
           </div>
