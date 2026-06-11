@@ -3,7 +3,6 @@
 import { useEffect } from 'react'
 import Navbar from '@/components/Navbar'
 import EventsSection from '@/components/EventsSection'
-import PrizesSection from '@/components/PrizesSection'
 import Footer from '@/components/Footer'
 
 export default function EventsClient() {
@@ -22,7 +21,6 @@ export default function EventsClient() {
       <Navbar />
 
       <EventsSection />
-      <PrizesSection />
 
       <Footer />
     </main>
