@@ -363,7 +363,7 @@ export default function HackathonClient() {
         </Link>
         <h1 className="font-orbitron text-4xl sm:text-5xl font-black text-white mb-4">Yuva Hackathon</h1>
         <p className="text-[#ff7300] font-mono text-[10px] sm:text-xs tracking-widest uppercase mb-8">Flagship 36-Hour Sprint of Relentless Innovation</p>
-        <div className="flex justify-center gap-6 flex-wrap mb-12 border-b border-slate-900 pb-8 max-w-2xl mx-auto text-xs text-slate-400 font-mono">
+        <div className="flex justify-center gap-6 flex-wrap mb-6 border-b border-slate-900/60 pb-8 max-w-2xl mx-auto text-xs text-slate-400 font-mono">
           <div className="flex items-center gap-2">
             <Calendar size={14} className="text-[#ff7300]" />
             <span>36 Hours · In-Person</span>
@@ -377,6 +377,10 @@ export default function HackathonClient() {
             <span>Prize Pool ₹50,000+</span>
           </div>
         </div>
+
+        <Link href="/register?event=hackathon" className="btn-glow inline-block px-8 py-3.5 text-xs font-bold tracking-widest uppercase rounded-lg mb-12">
+          Register for Hackathon
+        </Link>
       </div>
 
       {/* Challenge Tracks */}

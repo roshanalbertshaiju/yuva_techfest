@@ -18,13 +18,8 @@ export default function RegistrationForm() {
   // Set initial tab from query param or default to student
   const [activeTab, setActiveTab] = useState<RegType>('student')
   const [status, setStatus] = useState<FormStatus>('idle')
-
-  useEffect(() => {
-    const typeParam = searchParams.get('type')
-    if (typeParam === 'sponsor' || typeParam === 'student') {
-      setActiveTab(typeParam)
-    }
-  }, [searchParams])
+  const [eventParam, setEventParam] = useState<string | null>(null)
+  const [selectedEvent, setSelectedEvent] = useState<string>('hackathon')
 
   // Form states
   const [studentForm, setStudentForm] = useState({
@@ -38,6 +33,45 @@ export default function RegistrationForm() {
     linkedin: ''
   })
 
+  useEffect(() => {
+    const typeParam = searchParams.get('type')
+    if (typeParam === 'sponsor' || typeParam === 'student') {
+      setActiveTab(typeParam)
+    }
+
+    const ev = searchParams.get('event')
+    if (ev) {
+      setEventParam(ev)
+      setSelectedEvent(ev)
+      
+      let defaultTeamSize = '1'
+      let defaultTrack = ''
+
+      if (ev === 'ctf') {
+        defaultTeamSize = '1'
+        defaultTrack = 'Cyber-Volt CTF'
+      } else if (ev === 'dronerace') {
+        defaultTeamSize = '1'
+        defaultTrack = 'Sky-Rush Drone Race'
+      } else if (ev === 'robowars') {
+        defaultTeamSize = '2'
+        defaultTrack = 'Robo-Wars Arena'
+      } else if (ev === 'workshop') {
+        defaultTeamSize = '1'
+        defaultTrack = 'AI & Web3 Workshops'
+      } else if (ev === 'hackathon') {
+        defaultTeamSize = '4'
+        defaultTrack = 'AI & Machine Learning'
+      }
+
+      setStudentForm(prev => ({
+        ...prev,
+        track: defaultTrack,
+        teamSize: defaultTeamSize
+      }))
+    }
+  }, [searchParams])
+
   const [sponsorForm, setSponsorForm] = useState({
     companyName: '',
     contactName: '',
@@ -49,6 +83,35 @@ export default function RegistrationForm() {
 
   const handleStudentChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setStudentForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
+  }
+
+  const handleEventChange = (val: string) => {
+    setSelectedEvent(val)
+    let defaultTeamSize = '1'
+    let defaultTrack = ''
+
+    if (val === 'ctf') {
+      defaultTeamSize = '1'
+      defaultTrack = 'Cyber-Volt CTF'
+    } else if (val === 'dronerace') {
+      defaultTeamSize = '1'
+      defaultTrack = 'Sky-Rush Drone Race'
+    } else if (val === 'robowars') {
+      defaultTeamSize = '2'
+      defaultTrack = 'Robo-Wars Arena'
+    } else if (val === 'workshop') {
+      defaultTeamSize = '1'
+      defaultTrack = 'AI & Web3 Workshops'
+    } else if (val === 'hackathon') {
+      defaultTeamSize = '4'
+      defaultTrack = 'AI & Machine Learning'
+    }
+
+    setStudentForm(prev => ({
+      ...prev,
+      track: defaultTrack,
+      teamSize: defaultTeamSize
+    }))
   }
 
   const handleSponsorChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -242,6 +305,29 @@ export default function RegistrationForm() {
                   </div>
                 </div>
 
+                {/* Event Selection */}
+                <div className="relative">
+                  <label className="block font-mono text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Select Event / Competition</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><Folder size={14} /></span>
+                    <select
+                      name="event"
+                      value={selectedEvent}
+                      disabled={!!eventParam}
+                      onChange={(e) => handleEventChange(e.target.value)}
+                      className={`cyber-input w-full rounded-lg pl-9 pr-4 py-3 text-xs appearance-none ${
+                        eventParam ? 'opacity-60 cursor-not-allowed bg-slate-900/50' : 'cursor-pointer'
+                      }`}
+                    >
+                      <option value="hackathon">Flagship Hackathon</option>
+                      <option value="ctf">Cyber-Volt CTF</option>
+                      <option value="dronerace">Sky-Rush Drone Race</option>
+                      <option value="robowars">Robo-Wars Arena</option>
+                      <option value="workshop">AI & Web3 Workshops</option>
+                    </select>
+                  </div>
+                </div>
+
                 <div className="grid sm:grid-cols-2 gap-4">
                   {/* Team Size */}
                   <div className="relative">
@@ -254,32 +340,62 @@ export default function RegistrationForm() {
                         onChange={handleStudentChange}
                         className="cyber-input w-full rounded-lg pl-9 pr-4 py-3 text-xs cursor-pointer appearance-none"
                       >
-                        <option value="1">1 (Individual / Looking for team)</option>
-                        <option value="2">2 Members</option>
-                        <option value="3">3 Members</option>
-                        <option value="4">4 Members</option>
+                        {selectedEvent === 'ctf' && (
+                          <>
+                            <option value="1">1 (Individual)</option>
+                            <option value="2">2 Members</option>
+                          </>
+                        )}
+                        {(selectedEvent === 'dronerace' || selectedEvent === 'workshop') && (
+                          <option value="1">1 (Individual)</option>
+                        )}
+                        {selectedEvent === 'robowars' && (
+                          <>
+                            <option value="2">2 Members</option>
+                            <option value="3">3 Members</option>
+                          </>
+                        )}
+                        {selectedEvent === 'hackathon' && (
+                          <>
+                            <option value="2">2 Members</option>
+                            <option value="3">3 Members</option>
+                            <option value="4">4 Members</option>
+                          </>
+                        )}
                       </select>
                     </div>
                   </div>
 
-                  {/* Track Interest */}
+                  {/* Track Interest / Event Readonly Indicator */}
                   <div className="relative">
-                    <label className="block font-mono text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Challenge Track of Interest</label>
+                    <label className="block font-mono text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">
+                      {selectedEvent === 'hackathon' ? 'Challenge Track of Interest' : 'Selected Event'}
+                    </label>
                     <div className="relative">
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><Folder size={14} /></span>
-                      <select
-                        name="track"
-                        value={studentForm.track}
-                        onChange={handleStudentChange}
-                        className="cyber-input w-full rounded-lg pl-9 pr-4 py-3 text-xs cursor-pointer appearance-none"
-                      >
-                        <option value="AI & Machine Learning">AI & Machine Learning</option>
-                        <option value="Web3 & Blockchain">Web3 & Blockchain</option>
-                        <option value="Cybersecurity">Cybersecurity</option>
-                        <option value="FinTech & EdTech">FinTech & EdTech</option>
-                        <option value="IoT & Smart Cities">IoT & Smart Cities</option>
-                        <option value="Open Innovation">Open Innovation (Wildcard)</option>
-                      </select>
+                      {selectedEvent === 'hackathon' ? (
+                        <select
+                          name="track"
+                          value={studentForm.track}
+                          onChange={handleStudentChange}
+                          className="cyber-input w-full rounded-lg pl-9 pr-4 py-3 text-xs cursor-pointer appearance-none"
+                        >
+                          <option value="AI & Machine Learning">AI & Machine Learning</option>
+                          <option value="Web3 & Blockchain">Web3 & Blockchain</option>
+                          <option value="Cybersecurity">Cybersecurity</option>
+                          <option value="FinTech & EdTech">FinTech & EdTech</option>
+                          <option value="IoT & Smart Cities">IoT & Smart Cities</option>
+                          <option value="Open Innovation">Open Innovation (Wildcard)</option>
+                        </select>
+                      ) : (
+                        <input
+                          type="text"
+                          name="track"
+                          readOnly
+                          value={studentForm.track}
+                          className="cyber-input w-full rounded-lg pl-9 pr-4 py-3 text-xs opacity-75 cursor-not-allowed bg-slate-900/30"
+                        />
+                      )}
                     </div>
                   </div>
                 </div>
