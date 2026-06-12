@@ -13,7 +13,6 @@ import { useAuth } from '@/context/AuthContext'
 import AuthModal from '@/components/AuthModal'
 import CustomSelect from '@/components/ui/custom-select'
 
-type RegType = 'student' | 'sponsor'
 type FormStatus = 'idle' | 'submitting' | 'success' | 'error'
 
 export default function RegistrationForm() {
@@ -21,10 +20,8 @@ export default function RegistrationForm() {
   const searchParams = useSearchParams()
   const { user } = useAuth()
   const [authModalOpen, setAuthModalOpen] = useState(false)
-  
-  // Set initial tab from query param or default to student
-  const [activeTab, setActiveTab] = useState<RegType>('student')
   const [status, setStatus] = useState<FormStatus>('idle')
+  const [errorMessage, setErrorMessage] = useState('')
   const [eventParam, setEventParam] = useState<string | null>(null)
   const [selectedEvent, setSelectedEvent] = useState<string>('hackathon')
 
@@ -41,11 +38,6 @@ export default function RegistrationForm() {
   })
 
   useEffect(() => {
-    const typeParam = searchParams.get('type')
-    if (typeParam === 'sponsor' || typeParam === 'student') {
-      setActiveTab(typeParam)
-    }
-
     const ev = searchParams.get('event')
     if (ev) {
       setEventParam(ev)
@@ -78,15 +70,6 @@ export default function RegistrationForm() {
       }))
     }
   }, [searchParams])
-
-  const [sponsorForm, setSponsorForm] = useState({
-    companyName: '',
-    contactName: '',
-    email: '',
-    phone: '',
-    tier: 'Platinum Partners',
-    notes: ''
-  })
 
   const handleStudentChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setStudentForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
@@ -121,17 +104,84 @@ export default function RegistrationForm() {
     }))
   }
 
-  const handleSponsorChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    setSponsorForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
-  }
-
   const [honeypot, setHoneypot] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setErrorMessage('')
 
-    if (activeTab === 'student' && !user) {
+    if (!user) {
       setAuthModalOpen(true)
+      return
+    }
+
+    // Client-side validations matching Firestore rules
+    if (!studentForm.name || studentForm.name.trim().length === 0) {
+      setErrorMessage('Name is required.')
+      setStatus('error')
+      return
+    }
+    if (studentForm.name.length > 100) {
+      setErrorMessage('Name must be 100 characters or less.')
+      setStatus('error')
+      return
+    }
+
+    const emailRegex = /^[^@]+@[^@]+\.[^@]+$/
+    if (!studentForm.email || !emailRegex.test(studentForm.email)) {
+      setErrorMessage('Please enter a valid email address (e.g. name@domain.com).')
+      setStatus('error')
+      return
+    }
+    if (studentForm.email.length > 100) {
+      setErrorMessage('Email must be 100 characters or less.')
+      setStatus('error')
+      return
+    }
+
+    if (!studentForm.college || studentForm.college.trim().length === 0) {
+      setErrorMessage('College / Institution name is required.')
+      setStatus('error')
+      return
+    }
+    if (studentForm.college.length > 150) {
+      setErrorMessage('College name must be 150 characters or less.')
+      setStatus('error')
+      return
+    }
+
+    if (!studentForm.year || !/^[1-5]$/.test(studentForm.year)) {
+      setErrorMessage('Year of study must be between 1 and 5.')
+      setStatus('error')
+      return
+    }
+
+    if (!studentForm.teamSize || !/^[1-9][0-9]?$/.test(studentForm.teamSize)) {
+      setErrorMessage('Team size must be a valid positive integer.')
+      setStatus('error')
+      return
+    }
+
+    if (!studentForm.track || studentForm.track.trim().length === 0) {
+      setErrorMessage('Event track is required.')
+      setStatus('error')
+      return
+    }
+    if (studentForm.track.length > 100) {
+      setErrorMessage('Event track must be 100 characters or less.')
+      setStatus('error')
+      return
+    }
+
+    if (studentForm.github && studentForm.github.length > 200) {
+      setErrorMessage('GitHub profile link must be 200 characters or less.')
+      setStatus('error')
+      return
+    }
+
+    if (studentForm.linkedin && studentForm.linkedin.length > 200) {
+      setErrorMessage('LinkedIn profile link must be 200 characters or less.')
+      setStatus('error')
       return
     }
 
@@ -146,39 +196,32 @@ export default function RegistrationForm() {
     }
 
     try {
-      if (activeTab === 'student') {
-        if (!user) {
-          setAuthModalOpen(true)
-          setStatus('idle')
-          return
-        }
-        const regRef = await addDoc(collection(db, 'registrations'), {
-          type: 'student',
-          uid: user.uid,
-          eventId: selectedEvent,
-          ...studentForm,
-          createdAt: serverTimestamp(),
-        })
-
-        await addDoc(collection(db, 'tickets'), {
-          uid: user.uid,
-          registrationId: regRef.id,
-          eventId: selectedEvent,
-          eventName: studentForm.track,
-          studentName: studentForm.name,
-          studentEmail: studentForm.email,
-          createdAt: serverTimestamp(),
-        })
-      } else {
-        await addDoc(collection(db, 'sponsorships'), {
-          type: 'sponsor',
-          ...sponsorForm,
-          createdAt: serverTimestamp(),
-        })
+      if (!user) {
+        setAuthModalOpen(true)
+        setStatus('idle')
+        return
       }
+      const regRef = await addDoc(collection(db, 'registrations'), {
+        type: 'student',
+        uid: user.uid,
+        eventId: selectedEvent,
+        ...studentForm,
+        createdAt: serverTimestamp(),
+      })
+
+      await addDoc(collection(db, 'tickets'), {
+        uid: user.uid,
+        registrationId: regRef.id,
+        eventId: selectedEvent,
+        eventName: studentForm.track,
+        studentName: studentForm.name,
+        studentEmail: studentForm.email,
+        createdAt: serverTimestamp(),
+      })
       setStatus('success')
     } catch (error) {
       console.error('Error submitting form to Firebase:', error)
+      setErrorMessage('Transmission failed. Please try again.')
       setStatus('error')
     }
   }
@@ -202,10 +245,7 @@ export default function RegistrationForm() {
           <div>
             <h2 className="font-orbitron text-2xl font-bold text-white mb-2">Registration Confirmed!</h2>
             <p className="text-slate-400 text-sm max-w-md mx-auto leading-relaxed">
-              {activeTab === 'student' 
-                ? "You have been registered for Yuva Tech-Fest. You can coordinate with your team members to prepare for the events. We will see you at the campus!"
-                : "Thank you for partnering with us! Our partnership team will contact you within the next 24 hours with sponsorship details."
-              }
+              You have been registered for Yuva Tech-Fest. You can coordinate with your team members to prepare for the events. We will see you at the campus!
             </p>
           </div>
           <div className="flex gap-4 mt-4">
@@ -219,7 +259,6 @@ export default function RegistrationForm() {
               onClick={() => {
                 setStatus('idle')
                 setStudentForm({ name: '', email: '', college: '', year: '3', teamSize: '4', track: 'AI & Machine Learning', github: '', linkedin: '' })
-                setSponsorForm({ companyName: '', contactName: '', email: '', phone: '', tier: 'Platinum Partners', notes: '' })
               }}
               className="btn-outline px-6 py-3 text-xs"
             >
@@ -258,358 +297,169 @@ export default function RegistrationForm() {
             </button>
           </div>
 
-          {/* Tab Selection */}
-          <div className="flex rounded-lg bg-black/45 p-1 border border-slate-800">
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab('student')
-                router.replace('/register?type=student')
-              }}
-              className={`flex-1 py-2.5 rounded-md font-orbitron text-xs font-semibold tracking-wider transition-all duration-300 ${
-                activeTab === 'student'
-                  ? 'bg-[#ff7300] text-black shadow-[0_0_10px_rgba(255,115,0,0.2)]'
-                  : 'text-slate-500 hover:text-white'
-              }`}
-            >
-              STUDENT PARTICIPATION
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab('sponsor')
-                router.replace('/register?type=sponsor')
-              }}
-              className={`flex-1 py-2.5 rounded-md font-orbitron text-xs font-semibold tracking-wider transition-all duration-300 ${
-                activeTab === 'sponsor'
-                  ? 'bg-[#ff7300] text-black shadow-[0_0_10px_rgba(255,115,0,0.2)]'
-                  : 'text-slate-500 hover:text-white'
-              }`}
-            >
-              SPONSOR / PARTNER
-            </button>
-          </div>
-
           {/* Form Content */}
-          <AnimatePresence mode="wait">
-            {activeTab === 'student' ? (
-              <motion.div
-                key="student"
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 10 }}
-                transition={{ duration: 0.25 }}
-                className="space-y-4 text-left"
-              >
-                <div className="grid sm:grid-cols-2 gap-4">
-                  {/* Name */}
-                  <div className="relative">
-                    <label className="block font-mono text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Full Name</label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><User size={14} /></span>
-                      <input
-                        type="text"
-                        name="name"
-                        required
-                        value={studentForm.name}
-                        onChange={handleStudentChange}
-                        placeholder="Alice Smith"
-                        className="cyber-input w-full rounded-lg pl-9 pr-4 py-3 text-xs"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Email */}
-                  <div className="relative">
-                    <label className="block font-mono text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Email Address</label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><Mail size={14} /></span>
-                      <input
-                        type="email"
-                        name="email"
-                        required
-                        value={studentForm.email}
-                        onChange={handleStudentChange}
-                        placeholder="alice@domain.edu"
-                        className="cyber-input w-full rounded-lg pl-9 pr-4 py-3 text-xs"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid sm:grid-cols-3 gap-4">
-                  {/* College */}
-                  <div className="relative sm:col-span-2">
-                    <label className="block font-mono text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">College / University</label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><School size={14} /></span>
-                      <input
-                        type="text"
-                        name="college"
-                        required
-                        value={studentForm.college}
-                        onChange={handleStudentChange}
-                        placeholder="SRM IST Trichy"
-                        className="cyber-input w-full rounded-lg pl-9 pr-4 py-3 text-xs"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Year of study */}
-                  <div className="relative">
-                    <label className="block font-mono text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Year of Study</label>
-                    <CustomSelect
-                      value={studentForm.year}
-                      onChange={(val) => setStudentForm(prev => ({ ...prev, year: val }))}
-                      options={[
-                        { value: '1', label: '1st Year' },
-                        { value: '2', label: '2nd Year' },
-                        { value: '3', label: '3rd Year' },
-                        { value: '4', label: '4th Year' },
-                        { value: 'PG', label: 'Postgraduate' }
-                      ]}
-                    />
-                  </div>
-                </div>
-
-                {/* Event Selection */}
+          <div className="space-y-4 text-left">
+            <div className="grid sm:grid-cols-2 gap-4">
+              {/* Name */}
+              <div className="relative">
+                <label className="block font-mono text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Full Name</label>
                 <div className="relative">
-                  <label className="block font-mono text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Select Event / Competition</label>
-                  <CustomSelect
-                    value={selectedEvent}
-                    disabled={!!eventParam}
-                    onChange={handleEventChange}
-                    icon={<Folder size={14} />}
-                    options={[
-                      { value: 'hackathon', label: 'Flagship Hackathon' },
-                      { value: 'ctf', label: 'Cyber-Volt CTF' },
-                      { value: 'dronerace', label: 'Sky-Rush Drone Race' },
-                      { value: 'robowars', label: 'Robo-Wars Arena' },
-                      { value: 'workshop', label: 'AI & Web3 Workshops' }
-                    ]}
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><User size={14} /></span>
+                  <input
+                    type="text"
+                    name="name"
+                    required
+                    value={studentForm.name}
+                    onChange={handleStudentChange}
+                    placeholder="Alice Smith"
+                    className="cyber-input w-full rounded-lg pl-9 pr-4 py-3 text-xs"
                   />
                 </div>
+              </div>
 
-                <div className="grid sm:grid-cols-2 gap-4">
-                  {/* Team Size */}
-                  <div className="relative">
-                    <label className="block font-mono text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Team Size</label>
-                    <CustomSelect
-                      value={studentForm.teamSize}
-                      onChange={(val) => setStudentForm(prev => ({ ...prev, teamSize: val }))}
-                      icon={<Users size={14} />}
-                      options={(() => {
-                        if (selectedEvent === 'ctf') {
-                          return [
-                            { value: '1', label: '1 (Individual)' },
-                            { value: '2', label: '2 Members' }
-                          ]
-                        }
-                        if (selectedEvent === 'dronerace' || selectedEvent === 'workshop') {
-                          return [
-                            { value: '1', label: '1 (Individual)' }
-                          ]
-                        }
-                        if (selectedEvent === 'robowars') {
-                          return [
-                            { value: '2', label: '2 Members' },
-                            { value: '3', label: '3 Members' }
-                          ]
-                        }
-                        return [
-                          { value: '2', label: '2 Members' },
-                          { value: '3', label: '3 Members' },
-                          { value: '4', label: '4 Members' }
-                        ]
-                      })()}
-                    />
-                  </div>
-
-                  {/* Track Interest / Event Readonly Indicator */}
-                  <div className="relative">
-                    <label className="block font-mono text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">
-                      {selectedEvent === 'hackathon' ? 'Challenge Track of Interest' : 'Selected Event'}
-                    </label>
-                    {selectedEvent === 'hackathon' ? (
-                      <CustomSelect
-                        value={studentForm.track}
-                        onChange={(val) => setStudentForm(prev => ({ ...prev, track: val }))}
-                        icon={<Folder size={14} />}
-                        options={[
-                          { value: 'AI & Machine Learning', label: 'AI & Machine Learning' },
-                          { value: 'Web3 & Blockchain', label: 'Web3 & Blockchain' },
-                          { value: 'Cybersecurity', label: 'Cybersecurity' },
-                          { value: 'FinTech & EdTech', label: 'FinTech & EdTech' },
-                          { value: 'IoT & Smart Cities', label: 'IoT & Smart Cities' },
-                          { value: 'Open Innovation', label: 'Open Innovation (Wildcard)' }
-                        ]}
-                      />
-                    ) : (
-                      <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><Folder size={14} /></span>
-                        <input
-                          type="text"
-                          name="track"
-                          readOnly
-                          value={studentForm.track}
-                          className="cyber-input w-full rounded-lg pl-9 pr-4 py-3 text-xs opacity-75 cursor-not-allowed bg-slate-900/30"
-                        />
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="grid sm:grid-cols-2 gap-4">
-                  {/* GitHub */}
-                  <div className="relative">
-                    <label className="block font-mono text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">GitHub Profile</label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><Globe size={14} /></span>
-                      <input
-                        type="url"
-                        name="github"
-                        value={studentForm.github}
-                        onChange={handleStudentChange}
-                        placeholder="https://github.com/username"
-                        className="cyber-input w-full rounded-lg pl-9 pr-4 py-3 text-xs"
-                      />
-                    </div>
-                  </div>
-
-                  {/* LinkedIn */}
-                  <div className="relative">
-                    <label className="block font-mono text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">LinkedIn Profile</label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><Globe size={14} /></span>
-                      <input
-                        type="url"
-                        name="linkedin"
-                        value={studentForm.linkedin}
-                        onChange={handleStudentChange}
-                        placeholder="https://linkedin.com/in/username"
-                        className="cyber-input w-full rounded-lg pl-9 pr-4 py-3 text-xs"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="sponsor"
-                initial={{ opacity: 0, x: 10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
-                transition={{ duration: 0.25 }}
-                className="space-y-4 text-left"
-              >
-                <div className="grid sm:grid-cols-2 gap-4">
-                  {/* Company Name */}
-                  <div className="relative">
-                    <label className="block font-mono text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Company / Org Name</label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><Building size={14} /></span>
-                      <input
-                        type="text"
-                        name="companyName"
-                        required
-                        value={sponsorForm.companyName}
-                        onChange={handleSponsorChange}
-                        placeholder="Acme Corp"
-                        className="cyber-input w-full rounded-lg pl-9 pr-4 py-3 text-xs"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Contact Person Name */}
-                  <div className="relative">
-                    <label className="block font-mono text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Contact Name</label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><User size={14} /></span>
-                      <input
-                        type="text"
-                        name="contactName"
-                        required
-                        value={sponsorForm.contactName}
-                        onChange={handleSponsorChange}
-                        placeholder="Bob Johnson"
-                        className="cyber-input w-full rounded-lg pl-9 pr-4 py-3 text-xs"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid sm:grid-cols-2 gap-4">
-                  {/* Contact Email */}
-                  <div className="relative">
-                    <label className="block font-mono text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Contact Email</label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><Mail size={14} /></span>
-                      <input
-                        type="email"
-                        name="email"
-                        required
-                        value={sponsorForm.email}
-                        onChange={handleSponsorChange}
-                        placeholder="partners@acme.com"
-                        className="cyber-input w-full rounded-lg pl-9 pr-4 py-3 text-xs"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Contact Phone */}
-                  <div className="relative">
-                    <label className="block font-mono text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Phone Number</label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><Phone size={14} /></span>
-                      <input
-                        type="tel"
-                        name="phone"
-                        required
-                        value={sponsorForm.phone}
-                        onChange={handleSponsorChange}
-                        placeholder="+91 XXXXX XXXXX"
-                        className="cyber-input w-full rounded-lg pl-9 pr-4 py-3 text-xs"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Sponsor Tier */}
+              {/* Email */}
+              <div className="relative">
+                <label className="block font-mono text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Academic Email</label>
                 <div className="relative">
-                  <label className="block font-mono text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Sponsorship Tier Preference</label>
-                  <CustomSelect
-                    value={sponsorForm.tier}
-                    onChange={(val) => setSponsorForm(prev => ({ ...prev, tier: val }))}
-                    options={[
-                      { value: "Title Sponsor", label: "Title Sponsor Preference" },
-                      { value: "Platinum Partners", label: "Platinum Partners Tier" },
-                      { value: "Gold Partners", label: "Gold Partners Tier" },
-                      { value: "Custom Partnership", label: "Custom Collaboration / Developer Swag" }
-                ]}
-              />
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><Mail size={14} /></span>
+                  <input
+                    type="email"
+                    name="email"
+                    required
+                    value={studentForm.email}
+                    onChange={handleStudentChange}
+                    placeholder="alice@university.edu"
+                    className="cyber-input w-full rounded-lg pl-9 pr-4 py-3 text-xs"
+                  />
+                </div>
+              </div>
             </div>
 
-                {/* Notes/Queries */}
+            <div className="grid sm:grid-cols-2 gap-4">
+              {/* College */}
+              <div className="relative">
+                <label className="block font-mono text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">College / Institution</label>
                 <div className="relative">
-                  <label className="block font-mono text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Additional Notes / Custom Requirements</label>
-                  <textarea
-                    name="notes"
-                    rows={4}
-                    value={sponsorForm.notes}
-                    onChange={handleSponsorChange}
-                    placeholder="We would like to introduce a special API prize track..."
-                    className="cyber-input w-full rounded-lg px-4 py-3 text-xs resize-none"
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><School size={14} /></span>
+                  <input
+                    type="text"
+                    name="college"
+                    required
+                    value={studentForm.college}
+                    onChange={handleStudentChange}
+                    placeholder="SRM Institute of Science and Technology"
+                    className="cyber-input w-full rounded-lg pl-9 pr-4 py-3 text-xs"
                   />
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              </div>
+
+              {/* Year */}
+              <div className="relative">
+                <label className="block font-mono text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Year of Study</label>
+                <CustomSelect
+                  value={studentForm.year}
+                  onChange={(val) => setStudentForm(prev => ({ ...prev, year: val }))}
+                  options={[
+                    { value: "1", label: "1st Year / Freshman" },
+                    { value: "2", label: "2nd Year / Sophomore" },
+                    { value: "3", label: "3rd Year / Junior" },
+                    { value: "4", label: "4th Year / Senior" },
+                    { value: "5", label: "5th Year (Dual Degree)" }
+                  ]}
+                />
+              </div>
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-4">
+              {/* Event Dropdown */}
+              <div className="relative">
+                <label className="block font-mono text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Select Event Modules</label>
+                <CustomSelect
+                  value={selectedEvent}
+                  onChange={handleEventChange}
+                  options={[
+                    { value: "hackathon", label: "Yuva Hackathon (36-hour code)" },
+                    { value: "ctf", label: "Cyber-Volt CTF (Security)" },
+                    { value: "dronerace", label: "Sky-Rush Drone Race" },
+                    { value: "robowars", label: "Combat Robo-Wars Arena" },
+                    { value: "workshop", label: "AI & Web3 Masterclass" }
+                  ]}
+                />
+              </div>
+
+              {/* Team Size */}
+              <div className="relative">
+                <label className="block font-mono text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Team Size (Members)</label>
+                <CustomSelect
+                  value={studentForm.teamSize}
+                  onChange={(val) => setStudentForm(prev => ({ ...prev, teamSize: val }))}
+                  options={[
+                    { value: "1", label: "Individual / Solo Participant" },
+                    { value: "2", label: "2 Members Team" },
+                    { value: "3", label: "3 Members Team" },
+                    { value: "4", label: "4 Members Team (Max Limit)" }
+                  ]}
+                />
+              </div>
+            </div>
+
+            {/* Event Track */}
+            <div className="relative">
+              <label className="block font-mono text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Project Domain / Challenge Track</label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><Folder size={14} /></span>
+                <input
+                  type="text"
+                  name="track"
+                  required
+                  value={studentForm.track}
+                  onChange={handleStudentChange}
+                  placeholder="e.g. AI & Machine Learning, Cyber Security"
+                  className="cyber-input w-full rounded-lg pl-9 pr-4 py-3 text-xs"
+                />
+              </div>
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-4">
+              {/* GitHub */}
+              <div className="relative">
+                <label className="block font-mono text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">GitHub Profile</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><Globe size={14} /></span>
+                  <input
+                    type="url"
+                    name="github"
+                    value={studentForm.github}
+                    onChange={handleStudentChange}
+                    placeholder="https://github.com/username"
+                    className="cyber-input w-full rounded-lg pl-9 pr-4 py-3 text-xs"
+                  />
+                </div>
+              </div>
+
+              {/* LinkedIn */}
+              <div className="relative">
+                <label className="block font-mono text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">LinkedIn Profile</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><Globe size={14} /></span>
+                  <input
+                    type="url"
+                    name="linkedin"
+                    value={studentForm.linkedin}
+                    onChange={handleStudentChange}
+                    placeholder="https://linkedin.com/in/username"
+                    className="cyber-input w-full rounded-lg pl-9 pr-4 py-3 text-xs"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
 
           {/* Submit Buttons */}
           <div className="space-y-4">
             {status === 'error' && (
               <p className="text-red-500 text-xs font-mono text-center animate-pulse">
-                // ERROR: TRANSMISSION FAILED. PLEASE TRY AGAIN.
+                // ERROR: {errorMessage.toUpperCase() || 'TRANSMISSION FAILED. PLEASE TRY AGAIN.'}
               </p>
             )}
             <motion.button
@@ -619,7 +469,7 @@ export default function RegistrationForm() {
               whileHover={status !== 'submitting' ? { scale: 1.02 } : {}}
               whileTap={status !== 'submitting' ? { scale: 0.98 } : {}}
             >
-              {activeTab === 'student' && !user ? (
+              {!user ? (
                 <>
                   LOG IN / SIGN UP TO REGISTER
                   <ArrowRight size={14} />

@@ -13,7 +13,7 @@ export default function HeroSection() {
   }
 
   const handleRegisterSponsor = () => {
-    router.push('/register?type=sponsor')
+    router.push('/contact?subject=Sponsor%20Inquiry')
   }
 
   return (

@@ -12,8 +12,9 @@ import { ChevronDown, Terminal, LogOut, QrCode, Scan } from 'lucide-react'
 const navLinks = [
   { label: 'Home', href: '/' },
   { label: 'Events', href: '/events' },
-  { label: 'About', href: '/about' },
+  { label: 'Launchpad', href: '/launchpad' },
   { label: 'Sponsors', href: '/sponsors' },
+  { label: 'About', href: '/about' },
   { label: 'Contact', href: '/contact' },
 ]
 
@@ -46,10 +47,7 @@ export default function Navbar() {
     : 'U'
 
   return (
-    <motion.nav
-      initial={{ y: -80, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.7, ease: 'easeOut' }}
+    <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled
           ? 'glass border-b border-[rgba(255,115,0,0.15)] bg-[rgba(5,11,20,0.85)]'
@@ -90,13 +88,8 @@ export default function Navbar() {
 
         {/* Desktop Nav */}
         <div className="hidden md:flex items-center gap-6">
-          {navLinks.map((link, i) => (
-            <motion.div
-              key={link.href}
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 * i + 0.4 }}
-            >
+          {navLinks.map((link) => (
+            <div key={link.href}>
               <Link
                 href={link.href}
                 className={`nav-link text-slate-400 relative ${
@@ -106,28 +99,22 @@ export default function Navbar() {
                 <span className="text-[#ff730044] mr-1">{'>'}</span>
                 {link.label}
                 {isActive(link.href) && (
-                  <motion.span
-                    className="absolute bottom-[-4px] left-0 right-0 h-[1.5px] bg-[#ff7300]"
-                    layoutId="nav-indicator"
-                  />
+                  <span className="absolute bottom-[-4px] left-0 right-0 h-[1.5px] bg-[#ff7300]" />
                 )}
               </Link>
-            </motion.div>
+            </div>
           ))}
 
           <div className="flex items-center gap-4 border-l border-slate-800 pl-6">
             {loading ? (
               <span className="text-slate-500 font-mono text-[10px]">// INDEXING...</span>
             ) : !user ? (
-              <motion.button
+              <button
                 onClick={() => setAuthModalOpen(true)}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.5 }}
                 className="btn-glow px-5 py-2 text-xs block text-center"
               >
                 Log In / Sign Up
-              </motion.button>
+              </button>
             ) : (
               <div className="relative">
                 <button
@@ -242,40 +229,97 @@ export default function Navbar() {
       <AnimatePresence>
         {menuOpen && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden glass border-t border-[rgba(255,115,0,0.15)] bg-[rgba(5,11,20,0.95)]"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            className="fixed inset-0 z-50 md:hidden bg-[#020408]/98 backdrop-blur-2xl flex flex-col justify-between p-6 overflow-y-auto"
           >
-            <div className="px-6 py-4 flex flex-col gap-4">
-              {navLinks.map((link) => (
-                <Link
+            {/* Top Bar inside Overlay */}
+            <div className="flex items-center justify-between">
+              {/* Logo */}
+              <div className="flex items-center gap-3">
+                <div className="relative w-10 h-10 rounded-full overflow-hidden border border-[rgba(255,115,0,0.3)]">
+                  <Image
+                    src="/logo.png"
+                    alt="Yuva Tech-Fest Logo"
+                    fill
+                    className="object-cover scale-110"
+                    sizes="40px"
+                  />
+                </div>
+                <div>
+                  <p className="font-orbitron text-xs font-bold text-white leading-none tracking-wide">
+                    YUVA <span className="text-[#ff7300]">TECH-FEST</span>
+                  </p>
+                  <p className="font-mono text-[8px] text-slate-400 tracking-widest mt-0.5">
+                    TECH-FEST 2025
+                  </p>
+                </div>
+              </div>
+
+              {/* Close Button */}
+              <button
+                onClick={() => setMenuOpen(false)}
+                className="p-2 rounded-xl bg-white/5 border border-slate-800 text-[#ff7300] hover:text-white transition-colors"
+                aria-label="Close menu"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Navigation Links (Centered) */}
+            <div className="flex flex-col items-center justify-center my-auto py-12 gap-8">
+              {navLinks.map((link, idx) => (
+                <motion.div
                   key={link.href}
-                  href={link.href}
-                  className={`nav-link text-sm py-2 ${
-                    isActive(link.href) ? 'text-[#ff7300]' : 'text-slate-350'
-                  }`}
-                  onClick={() => setMenuOpen(false)}
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.05 + 0.1 }}
                 >
-                  {link.label}
-                </Link>
+                  <Link
+                    href={link.href}
+                    onClick={() => setMenuOpen(false)}
+                    className={`font-orbitron text-2xl font-bold tracking-widest transition-all relative py-1 block ${
+                      isActive(link.href) ? 'text-[#ff7300]' : 'text-slate-350 hover:text-white'
+                    }`}
+                  >
+                    {link.label}
+                    {isActive(link.href) && (
+                      <span className="absolute bottom-0 left-1/4 right-1/4 h-[2px] bg-[#ff7300] shadow-[0_0_8px_#ff7300]" />
+                    )}
+                  </Link>
+                </motion.div>
               ))}
+            </div>
+
+            {/* Footer Profile & Actions */}
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="mt-auto w-full max-w-sm mx-auto"
+            >
               {loading ? (
-                <span className="text-slate-500 font-mono text-xs text-center py-2">// INDEXING...</span>
+                <div className="text-center py-4">
+                  <span className="text-slate-500 font-mono text-xs">// INDEXING SECURITY PROTOCOLS...</span>
+                </div>
               ) : !user ? (
                 <button
                   onClick={() => {
                     setMenuOpen(false)
                     setAuthModalOpen(true)
                   }}
-                  className="btn-glow px-5 py-3 text-xs text-center w-full"
+                  className="btn-glow px-6 py-4 text-xs text-center w-full font-bold tracking-widest uppercase rounded-xl"
                 >
                   Log In / Sign Up
                 </button>
               ) : (
-                <div className="flex flex-col gap-3 border-t border-slate-800 pt-4 mt-2">
-                  <div className="flex items-center gap-3 px-2 py-1.5">
-                    <div className="w-10 h-10 rounded-full bg-orange-500/10 border border-orange-500/30 flex items-center justify-center text-[#ff7300] font-orbitron font-bold text-base shadow-[0_0_10px_rgba(255,115,0,0.1)]">
+                <div className="glass-card rounded-2xl p-4 border border-slate-800/80 bg-[#050b14]/50 flex flex-col gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-orange-500/10 border border-orange-500/30 flex items-center justify-center text-[#ff7300] font-orbitron font-bold text-base shadow-[0_0_10px_rgba(255,115,0,0.15)]">
                       {initials}
                     </div>
                     <div className="min-w-0 flex-1">
@@ -288,35 +332,38 @@ export default function Navbar() {
                     </div>
                   </div>
 
-                  {profile?.isAdmin && (
-                    <Link
-                      href="/admin"
-                      className="flex items-center gap-2 w-full px-3 py-2.5 rounded-lg text-xs font-mono text-slate-350 hover:text-white bg-orange-500/5 hover:bg-orange-500/10 border border-orange-500/10 transition-all"
-                      onClick={() => setMenuOpen(false)}
+                  <div className="grid grid-cols-2 gap-2 mt-1">
+                    {profile?.isAdmin && (
+                      <Link
+                        href="/admin"
+                        className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-[10px] font-mono text-slate-350 hover:text-white bg-orange-500/5 hover:bg-orange-500/10 border border-orange-500/15 transition-all text-center"
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        <Terminal size={12} className="text-[#ff7300]" />
+                        CONSOLE_PANEL
+                      </Link>
+                    )}
+                    <button
+                      onClick={() => {
+                        setMenuOpen(false)
+                        logout()
+                      }}
+                      className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-[10px] font-mono text-red-400 hover:text-red-350 bg-red-500/5 hover:bg-red-500/10 border border-red-500/15 transition-all text-center ${
+                        profile?.isAdmin ? 'col-span-1' : 'col-span-2'
+                      }`}
                     >
-                      <Terminal size={14} className="text-[#ff7300]" />
-                      CONSOLE_PANEL
-                    </Link>
-                  )}
-
-                  <button
-                    onClick={() => {
-                      setMenuOpen(false)
-                      logout()
-                    }}
-                    className="flex items-center gap-2 w-full px-3 py-2.5 rounded-lg text-left text-xs font-mono text-red-400 hover:text-red-300 bg-red-500/5 hover:bg-red-500/10 border border-red-500/10 transition-all"
-                  >
-                    <LogOut size={14} />
-                    DISCONNECT
-                  </button>
+                      <LogOut size={12} />
+                      DISCONNECT
+                    </button>
+                  </div>
                 </div>
               )}
-            </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
       <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
-    </motion.nav>
+    </nav>
   )
 }

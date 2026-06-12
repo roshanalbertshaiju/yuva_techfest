@@ -7,7 +7,7 @@ import {
   ShieldAlert, ShieldCheck, Search, RefreshCw, FileText, 
   Users, Briefcase, ExternalLink, Calendar, MapPin, Loader2, ArrowLeft,
   Plus, Edit, Trash2, X, PlusCircle, CheckSquare, Settings, Play,
-  HelpCircle, UserCircle, BarChart3, Clock, Database
+  HelpCircle, UserCircle, BarChart3, Clock, Database, Mail
 } from 'lucide-react'
 import { 
   collection, query, orderBy, getDocs, doc, setDoc, deleteDoc, getDoc
@@ -35,14 +35,12 @@ interface Registration {
   createdAt?: any
 }
 
-interface Sponsorship {
+interface ContactMessage {
   id: string
-  companyName: string
-  contactName: string
+  name: string
   email: string
-  phone: string
-  tier: string
-  notes: string
+  subject: string
+  message: string
   createdAt?: any
 }
 
@@ -161,7 +159,7 @@ const emptyMember: TeamMember = {
 
 // ─── Tab Type ──────────────────────────────────────────────────────────────────
 
-type AdminTab = 'registrations' | 'sponsorships' | 'attendance' | 'events' | 'faqs' | 'team' | 'settings'
+type AdminTab = 'registrations' | 'contacts' | 'attendance' | 'events' | 'faqs' | 'team' | 'settings'
 
 // ─── Helper Components ─────────────────────────────────────────────────────────
 
@@ -227,12 +225,14 @@ export default function AdminClient() {
 
   // Data states
   const [registrations, setRegistrations] = useState<Registration[]>([])
-  const [sponsorships, setSponsorships] = useState<Sponsorship[]>([])
+  const [contacts, setContacts] = useState<ContactMessage[]>([])
   const [eventsList, setEventsList] = useState<EventData[]>([])
   const [faqs, setFaqs] = useState<FAQ[]>([])
   const [team, setTeam] = useState<TeamMember[]>([])
   const [usersList, setUsersList] = useState<UserDoc[]>([])
   const [updatingUserRole, setUpdatingUserRole] = useState<string | null>(null)
+  const [isElevateModalOpen, setIsElevateModalOpen] = useState(false)
+  const [elevateSearch, setElevateSearch] = useState('')
   const [stats, setStats] = useState<StatItem[]>(defaultSettings.stats)
   const [countdown, setCountdown] = useState<CountdownConfig>(defaultSettings.countdown)
 
@@ -286,9 +286,9 @@ export default function AdminClient() {
   const fetchData = async () => {
     setFetching(true)
     try {
-      const [regsSnap, sponsSnap, eventsSnap, faqsSnap, teamSnap, countdownSnap, statsSnap, usersSnap] = await Promise.all([
+      const [regsSnap, contactsSnap, eventsSnap, faqsSnap, teamSnap, countdownSnap, statsSnap, usersSnap] = await Promise.all([
         getDocs(query(collection(db, 'registrations'), orderBy('createdAt', 'desc'))),
-        getDocs(query(collection(db, 'sponsorships'), orderBy('createdAt', 'desc'))),
+        getDocs(query(collection(db, 'contact_messages'), orderBy('createdAt', 'desc'))),
         getDocs(collection(db, 'events')),
         getDocs(query(collection(db, 'faqs'), orderBy('order', 'asc'))),
         getDocs(query(collection(db, 'team'), orderBy('order', 'asc'))),
@@ -298,7 +298,7 @@ export default function AdminClient() {
       ])
 
       setRegistrations(regsSnap.docs.map(d => ({ id: d.id, ...d.data() })) as Registration[])
-      setSponsorships(sponsSnap.docs.map(d => ({ id: d.id, ...d.data() })) as Sponsorship[])
+      setContacts(contactsSnap.docs.map(d => ({ id: d.id, ...d.data() })) as ContactMessage[])
       setEventsList(eventsSnap.docs.map(d => ({ id: d.id, ...d.data() })) as EventData[])
       setFaqs(faqsSnap.docs.map(d => ({ id: d.id, ...d.data() })) as FAQ[])
       setTeam(teamSnap.docs.map(d => ({ id: d.id, ...d.data() })) as TeamMember[])
@@ -556,14 +556,14 @@ export default function AdminClient() {
     }
   }
 
-  const handleDeleteSponsorship = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this sponsorship request?')) return
+  const handleDeleteContact = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this contact message?')) return
     try {
       setFetching(true)
-      await deleteDoc(doc(db, 'sponsorships', id))
+      await deleteDoc(doc(db, 'contact_messages', id))
       await fetchData()
     } catch (error) {
-      alert('Failed to delete sponsorship request.')
+      alert('Failed to delete contact message.')
       console.error(error)
     } finally {
       setFetching(false)
@@ -622,11 +622,11 @@ export default function AdminClient() {
     return regEventId === attendanceEventId;
   })
 
-  const filteredSpons = sponsorships.filter(s =>
-    (s.companyName?.toLowerCase() || '').includes(search.toLowerCase()) ||
-    (s.contactName?.toLowerCase() || '').includes(search.toLowerCase()) ||
-    (s.email?.toLowerCase() || '').includes(search.toLowerCase()) ||
-    (s.tier?.toLowerCase() || '').includes(search.toLowerCase())
+  const filteredContacts = contacts.filter(c =>
+    (c.name?.toLowerCase() || '').includes(search.toLowerCase()) ||
+    (c.email?.toLowerCase() || '').includes(search.toLowerCase()) ||
+    (c.subject?.toLowerCase() || '').includes(search.toLowerCase()) ||
+    (c.message?.toLowerCase() || '').includes(search.toLowerCase())
   )
 
   const filteredEvents = eventsList.filter(e =>
@@ -722,7 +722,7 @@ export default function AdminClient() {
 
   const tabs: { key: AdminTab; label: string; icon: React.ReactNode; count?: number }[] = [
     { key: 'registrations', label: 'REGISTRATIONS', icon: <Users size={14} />, count: registrations.length },
-    { key: 'sponsorships', label: 'SPONSORS', icon: <Briefcase size={14} />, count: sponsorships.length },
+    { key: 'contacts', label: 'CONTACTS', icon: <Mail size={14} />, count: contacts.length },
     { key: 'attendance', label: 'ATTENDANCE', icon: <CheckSquare size={14} /> },
     { key: 'events', label: 'EVENTS', icon: <Calendar size={14} />, count: eventsList.length },
     { key: 'faqs', label: 'FAQs', icon: <HelpCircle size={14} />, count: faqs.length },
@@ -796,8 +796,8 @@ export default function AdminClient() {
             <span className="font-orbitron text-2xl font-black text-[#ff7300]">{registrations.length}</span>
           </div>
           <div className="glass-card rounded-xl p-4 border border-slate-900 bg-[#04070d]/20">
-            <span className="font-mono text-[9px] text-slate-500 uppercase block mb-1">SPONSOR LEADS</span>
-            <span className="font-orbitron text-2xl font-black text-amber-500">{sponsorships.length}</span>
+            <span className="font-mono text-[9px] text-slate-500 uppercase block mb-1">CONTACT MESSAGES</span>
+            <span className="font-orbitron text-2xl font-black text-amber-500">{contacts.length}</span>
           </div>
           <div className="glass-card rounded-xl p-4 border border-slate-900 bg-[#04070d]/20">
             <span className="font-mono text-[9px] text-slate-500 uppercase block mb-1">ACTIVE EVENTS</span>
@@ -890,43 +890,43 @@ export default function AdminClient() {
             </div>
           )}
 
-          {/* ── Sponsorships Tab ──────────────────────────────────────────────── */}
-          {activeTab === 'sponsorships' && (
+          {/* ── Contacts Tab ─────────────────────────────────────────────────── */}
+          {activeTab === 'contacts' && (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs font-light">
                 <thead>
                   <tr className="border-b border-slate-900 font-mono text-[10px] text-slate-500 tracking-wider bg-black/40 uppercase">
-                    <th className="p-4">Company</th>
-                    <th className="p-4">Contact Person</th>
+                    <th className="p-4">Name</th>
                     <th className="p-4">Email</th>
-                    <th className="p-4">Phone</th>
-                    <th className="p-4">Tier</th>
-                    <th className="p-4">Notes</th>
+                    <th className="p-4">Subject / Inquiry</th>
+                    <th className="p-4">Message</th>
                     <th className="p-4 text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-900/60">
-                  {filteredSpons.length > 0 ? (
-                    filteredSpons.map(spon => (
-                      <tr key={spon.id} className="hover:bg-slate-900/20 transition-colors">
-                        <td className="p-4 font-bold text-white">{spon.companyName}</td>
-                        <td className="p-4 text-slate-300">{spon.contactName}</td>
-                        <td className="p-4 font-mono text-[11px] text-slate-400">{spon.email}</td>
-                        <td className="p-4 font-mono text-[11px] text-slate-400">{spon.phone}</td>
-                        <td className="p-4">
-                          <span className="px-2.5 py-0.5 rounded-full border border-amber-500/20 bg-amber-500/5 text-amber-400 font-mono text-[10px] uppercase">
-                            {spon.tier}
+                  {filteredContacts.length > 0 ? (
+                    filteredContacts.map(contact => (
+                      <tr key={contact.id} className="hover:bg-slate-900/20 transition-colors">
+                        <td className="p-4 font-bold text-white whitespace-nowrap">{contact.name}</td>
+                        <td className="p-4 font-mono text-[11px] text-slate-400 whitespace-nowrap">
+                          <a href={`mailto:${contact.email}`} className="hover:text-orange-400 hover:underline">
+                            {contact.email}
+                          </a>
+                        </td>
+                        <td className="p-4 whitespace-nowrap">
+                          <span className="px-2.5 py-0.5 rounded-full border border-[#ff7300]/20 bg-[#ff7300]/5 text-[#ff7300] font-mono text-[10px] uppercase">
+                            {contact.subject}
                           </span>
                         </td>
-                        <td className="p-4 text-slate-400 leading-normal max-w-xs truncate" title={spon.notes}>
-                          {spon.notes || '-'}
+                        <td className="p-4 text-slate-300 leading-relaxed max-w-md break-words">
+                          {contact.message}
                         </td>
-                        <td className="p-4">
+                        <td className="p-4 whitespace-nowrap">
                           <div className="flex justify-center">
                             <button
-                              onClick={() => handleDeleteSponsorship(spon.id)}
+                              onClick={() => handleDeleteContact(contact.id)}
                               className="py-1 px-2 rounded border border-red-500/25 bg-red-950/10 text-red-500 text-[10px] font-bold hover:bg-red-950/25 transition-all flex items-center justify-center gap-1"
-                              title="Delete Request"
+                              title="Delete Message"
                             >
                               <Trash2 size={11} /> Delete
                             </button>
@@ -936,8 +936,8 @@ export default function AdminClient() {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={7} className="p-8 text-center text-slate-500 font-mono text-xs">
-                        // NO SPONSOR DATA LOGGED ON CURRENT SCAN FILTER
+                      <td colSpan={5} className="p-8 text-center text-slate-500 font-mono text-xs">
+                        // NO CONTACT MESSAGES LOGGED ON CURRENT SCAN FILTER
                       </td>
                     </tr>
                   )}
@@ -1219,6 +1219,12 @@ export default function AdminClient() {
                     <span className="font-mono text-[10px] text-slate-500 uppercase">// AUTHENTICATED SYSTEM ROLES</span>
                     <h3 className="font-orbitron text-xs font-bold text-orange-400 mt-1 uppercase">// Admins & Managers</h3>
                   </div>
+                  <button
+                    onClick={() => { setElevateSearch(''); setIsElevateModalOpen(true) }}
+                    className="btn-glow px-4 py-2 text-xs font-bold rounded-lg text-black flex items-center gap-1.5"
+                  >
+                    <PlusCircle size={14} /> ELEVATE USER
+                  </button>
                 </div>
 
                 <div className="glass-card rounded-xl border border-slate-900 bg-[#04070d]/20 overflow-hidden">
@@ -1719,6 +1725,91 @@ export default function AdminClient() {
                   </button>
                 </div>
               </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Elevate User Role Modal ────────────────────────────────────────────── */}
+      <AnimatePresence>
+        {isElevateModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div onClick={() => setIsElevateModalOpen(false)} className="fixed inset-0 bg-black/85 backdrop-blur-sm" />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 10 }}
+              className="w-full max-w-xl relative z-10 glass-card rounded-2xl p-6 border border-slate-800 bg-[#04070d] shadow-[0_0_50px_rgba(255,115,0,0.08)] flex flex-col max-h-[85vh]"
+            >
+              <div className="flex justify-between items-center mb-6 border-b border-slate-900 pb-4">
+                <div>
+                  <span className="font-mono text-[9px] text-[#ff7300] tracking-[0.3em] uppercase block">// SECURITY AUTHORIZATION PROTOCOL</span>
+                  <h2 className="font-orbitron text-lg font-black text-white">ELEVATE USER PRIVILEGES</h2>
+                </div>
+                <button type="button" onClick={() => setIsElevateModalOpen(false)} className="text-slate-400 hover:text-white"><X size={20} /></button>
+              </div>
+
+              {/* Search Box */}
+              <div className="relative mb-4">
+                <Search size={14} className="absolute left-3 top-3.5 text-slate-500" />
+                <input
+                  type="text"
+                  placeholder="SEARCH ALL REGISTERED USERS BY NAME OR EMAIL..."
+                  value={elevateSearch}
+                  onChange={e => setElevateSearch(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2.5 rounded-lg border border-slate-855 bg-black text-xs text-white placeholder-slate-600 focus:outline-none focus:border-orange-500/50 transition-colors font-mono uppercase"
+                />
+              </div>
+
+              {/* Users List Container */}
+              <div className="flex-1 overflow-y-auto min-h-[220px] border border-slate-900 rounded-xl bg-black/20 divide-y divide-slate-900/60 scrollbar-thin">
+                {usersList.filter(u => !u.isAdmin && !u.isManager).filter(u => 
+                  elevateSearch === '' ||
+                  (u.name?.toLowerCase() || '').includes(elevateSearch.toLowerCase()) ||
+                  (u.email?.toLowerCase() || '').includes(elevateSearch.toLowerCase())
+                ).length > 0 ? (
+                  usersList.filter(u => !u.isAdmin && !u.isManager).filter(u => 
+                    elevateSearch === '' ||
+                    (u.name?.toLowerCase() || '').includes(elevateSearch.toLowerCase()) ||
+                    (u.email?.toLowerCase() || '').includes(elevateSearch.toLowerCase())
+                  ).map(u => (
+                    <div key={u.id} className="p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 hover:bg-slate-900/10 transition-colors">
+                      <div>
+                        <div className="font-bold text-white text-xs">{u.name}</div>
+                        <div className="font-mono text-[10px] text-slate-400 mt-0.5">{u.email}</div>
+                        <div className="font-mono text-[8px] text-slate-550 select-all mt-0.5">{u.id}</div>
+                      </div>
+                      <div className="flex gap-2 self-stretch sm:self-auto justify-end">
+                        <button
+                          onClick={() => handleToggleUserRole(u.id, 'isManager', false)}
+                          disabled={updatingUserRole !== null}
+                          className="px-3 py-1 rounded border border-emerald-500/20 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold hover:bg-emerald-500/20 transition-all flex items-center gap-1"
+                        >
+                          + Make Manager
+                        </button>
+                        <button
+                          onClick={() => handleToggleUserRole(u.id, 'isAdmin', false)}
+                          disabled={updatingUserRole !== null}
+                          className="px-3 py-1 rounded border border-orange-500/20 bg-orange-500/10 text-orange-400 text-[10px] font-bold hover:bg-orange-500/20 transition-all flex items-center gap-1"
+                        >
+                          + Make Admin
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-8 text-center text-slate-500 font-mono text-xs">
+                    {elevateSearch !== ''
+                      ? `// NO MATCHING USER ROLES FOUND FOR "${elevateSearch.toUpperCase()}"`
+                      : '// TYPE NAME OR EMAIL TO FIND REGISTERED USERS'
+                    }
+                  </div>
+                )}
+              </div>
+
+              <div className="flex justify-end gap-3 border-t border-slate-900 pt-4 mt-4">
+                <button type="button" onClick={() => setIsElevateModalOpen(false)} className="btn-outline px-5 py-2 text-xs font-bold rounded-lg">Done</button>
+              </div>
             </motion.div>
           </div>
         )}

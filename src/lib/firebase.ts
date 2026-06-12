@@ -18,23 +18,33 @@ const missingKeys = Object.entries(firebaseConfig)
   .filter(([key, val]) => !val && key !== 'measurementId')
   .map(([key]) => `NEXT_PUBLIC_FIREBASE_${key.replace(/([A-Z])/g, "_$1").toUpperCase()}`);
 
+let app: any;
+let db: any;
+let auth: any;
+let analytics: any = null;
+
 if (missingKeys.length > 0) {
-  throw new Error(`Firebase Configuration Error: Missing environment variables: ${missingKeys.join(', ')}`);
-}
+  if (typeof window !== "undefined") {
+    throw new Error(`Firebase Configuration Error: Missing environment variables: ${missingKeys.join(', ')}`);
+  } else {
+    console.warn(`⚠️ Warning: Firebase environment variables are missing. Firebase features will be disabled during build.`);
+    app = {} as any;
+    db = {} as any;
+    auth = {} as any;
+  }
+} else {
+  app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+  db = getFirestore(app);
+  auth = getAuth(app);
 
-// Initialize Firebase app (safeguarded for SSR context)
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-const db = getFirestore(app);
-const auth = getAuth(app);
-
-// Initialize Analytics conditionally (safeguarded for SSR/Node contexts)
-let analytics = null;
-if (typeof window !== "undefined") {
-  isSupported().then((supported) => {
-    if (supported) {
-      analytics = getAnalytics(app);
-    }
-  });
+  // Initialize Analytics conditionally (safeguarded for SSR/Node contexts)
+  if (typeof window !== "undefined") {
+    isSupported().then((supported) => {
+      if (supported) {
+        analytics = getAnalytics(app);
+      }
+    });
+  }
 }
 
 export { app, db, auth, analytics };

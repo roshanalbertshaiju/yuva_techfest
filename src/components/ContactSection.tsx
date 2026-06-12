@@ -8,6 +8,7 @@ import CyberParticles from '@/components/ui/cyber-particles'
 import CampusMap from '@/components/ui/campus-map'
 import { db } from '@/lib/firebase'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
+import CustomSelect from '@/components/ui/custom-select'
 
 const socials = [
   { icon: <Instagram size={18} />, label: 'Instagram', href: 'https://www.instagram.com/srmist.trichy', color: '#E1306C' },
@@ -24,6 +25,7 @@ export default function ContactSection() {
 
   const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' })
   const [formState, setFormState] = useState<FormState>('idle')
+  const [errorMessage, setErrorMessage] = useState('')
   const [focused, setFocused] = useState<string | null>(null)
   const [honeypot, setHoneypot] = useState('')
 
@@ -33,12 +35,48 @@ export default function ContactSection() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setErrorMessage('')
 
     // Honeypot spam protection
     if (honeypot) {
       setTimeout(() => {
         setFormState('success')
       }, 1000)
+      return
+    }
+
+    if (!formData.name || formData.name.trim().length === 0) {
+      setErrorMessage('Name is required.')
+      setFormState('error')
+      return
+    }
+    if (formData.name.length > 100) {
+      setErrorMessage('Name must be 100 characters or less.')
+      setFormState('error')
+      return
+    }
+
+    const emailRegex = /^[^@]+@[^@]+\.[^@]+$/
+    if (!formData.email || !emailRegex.test(formData.email)) {
+      setErrorMessage('Please enter a valid email address (e.g. name@domain.com).')
+      setFormState('error')
+      return
+    }
+
+    if (!formData.subject) {
+      setErrorMessage('Please select what category/role you belong to.')
+      setFormState('error')
+      return
+    }
+
+    if (!formData.message || formData.message.trim().length === 0) {
+      setErrorMessage('Message is required.')
+      setFormState('error')
+      return
+    }
+    if (formData.message.length > 2000) {
+      setErrorMessage('Message must be 2000 characters or less.')
+      setFormState('error')
       return
     }
 
@@ -51,6 +89,7 @@ export default function ContactSection() {
       setFormState('success')
     } catch (err) {
       console.error("Error submitting contact message:", err)
+      setErrorMessage('Transmission failed. Please try again.')
       setFormState('error')
     }
   }
@@ -266,23 +305,18 @@ export default function ContactSection() {
                     <label className="block font-mono text-[10px] text-slate-500 tracking-widest uppercase mb-1.5">
                       I am a...
                     </label>
-                    <select
-                      name="subject"
-                      id="contact-subject"
-                      required
+                    <CustomSelect
                       value={formData.subject}
-                      onChange={handleChange}
-                      onFocus={() => setFocused('subject')}
-                      onBlur={() => setFocused(null)}
-                      className={`${inputClass('subject')} appearance-none cursor-pointer`}
-                    >
-                      <option value="" disabled>Select your role</option>
-                      <option value="student">Student (looking to participate)</option>
-                      <option value="sponsor">Sponsor / Partner</option>
-                      <option value="mentor">Mentor / Judge</option>
-                      <option value="media">Media / Press</option>
-                      <option value="other">Other</option>
-                    </select>
+                      onChange={(val) => setFormData(prev => ({ ...prev, subject: val }))}
+                      placeholder="Select your role"
+                      options={[
+                        { value: "student", label: "Student (looking to participate)" },
+                        { value: "sponsor", label: "Sponsor / Partner" },
+                        { value: "mentor", label: "Mentor / Judge" },
+                        { value: "media", label: "Media / Press" },
+                        { value: "other", label: "Other" }
+                      ]}
+                    />
                   </div>
 
                   {/* Message */}
@@ -327,7 +361,7 @@ export default function ContactSection() {
                   </motion.button>
                   {formState === 'error' && (
                     <p className="text-red-500 text-xs font-mono text-center animate-pulse mt-2">
-                      // ERROR: TRANSMISSION FAILED. PLEASE TRY AGAIN.
+                      // ERROR: {errorMessage.toUpperCase() || 'TRANSMISSION FAILED. PLEASE TRY AGAIN.'}
                     </p>
                   )}
                 </form>
