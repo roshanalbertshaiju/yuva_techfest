@@ -22,6 +22,9 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
+  metadataBase: process.env.VERCEL_URL
+    ? new URL(`https://${process.env.VERCEL_URL}`)
+    : new URL('http://localhost:3000'),
   title: 'Yuva Tech-Fest | SRM IST Tiruchirappalli',
   description:
     'Join the most electrifying technology festival at SRM Institute of Science and Technology, Tiruchirappalli. Build, innovate, and compete in the Yuva Tech-Fest.',
@@ -33,6 +36,18 @@ export const metadata: Metadata = {
     title: 'Yuva Tech-Fest | SRM IST Tiruchirappalli',
     description: 'The most electrifying technology festival at SRM IST Trichy — Yuva Tech-Fest.',
     type: 'website',
+    images: [
+      {
+        url: '/favicon.png',
+        width: 800,
+        height: 800,
+        alt: 'Yuva Tech-Fest Logo',
+      }
+    ],
+  },
+  twitter: {
+    card: 'summary',
+    images: ['/favicon.png'],
   },
 }
 

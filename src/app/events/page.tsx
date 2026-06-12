@@ -10,6 +10,18 @@ export const metadata: Metadata = {
     title: 'Events & Schedule | Yuva Tech-Fest 2026',
     description: 'Explore challenge tracks, schedule timeline, and cash prizes at Yuva Tech-Fest Trichy.',
     type: 'website',
+    images: [
+      {
+        url: '/favicon.png',
+        width: 800,
+        height: 800,
+        alt: 'Yuva Tech-Fest Logo',
+      }
+    ],
+  },
+  twitter: {
+    card: 'summary',
+    images: ['/favicon.png'],
   },
 }
 

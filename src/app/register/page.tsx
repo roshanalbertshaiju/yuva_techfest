@@ -9,6 +9,18 @@ export const metadata: Metadata = {
     title: 'Register | Yuva Tech-Fest',
     description: 'Secure your slot at SRM IST Trichy’s biggest technology festival. Register today.',
     type: 'website',
+    images: [
+      {
+        url: '/favicon.png',
+        width: 800,
+        height: 800,
+        alt: 'Yuva Tech-Fest Logo',
+      }
+    ],
+  },
+  twitter: {
+    card: 'summary',
+    images: ['/favicon.png'],
   },
 }
 

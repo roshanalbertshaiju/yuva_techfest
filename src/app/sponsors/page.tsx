@@ -10,6 +10,18 @@ export const metadata: Metadata = {
     title: 'Our Sponsors | Yuva Tech-Fest 2026',
     description: 'Connect with our corporate partners and sponsors supporting SRM IST Trichy\'s biggest tech festival.',
     type: 'website',
+    images: [
+      {
+        url: '/favicon.png',
+        width: 800,
+        height: 800,
+        alt: 'Yuva Tech-Fest Logo',
+      }
+    ],
+  },
+  twitter: {
+    card: 'summary',
+    images: ['/favicon.png'],
   },
 }
 

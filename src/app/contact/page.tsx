@@ -10,6 +10,18 @@ export const metadata: Metadata = {
     title: 'Contact Us | Yuva Tech-Fest 2026',
     description: 'Get in touch with the SRM IST Trichy Yuva Tech-Fest organizer team.',
     type: 'website',
+    images: [
+      {
+        url: '/favicon.png',
+        width: 800,
+        height: 800,
+        alt: 'Yuva Tech-Fest Logo',
+      }
+    ],
+  },
+  twitter: {
+    card: 'summary',
+    images: ['/favicon.png'],
   },
 }
 

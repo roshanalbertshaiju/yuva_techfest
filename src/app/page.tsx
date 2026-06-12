@@ -10,6 +10,18 @@ export const metadata: Metadata = {
     title: 'Yuva Tech-Fest 2026 | SRM IST Tiruchirappalli',
     description: 'The most electrifying technology festival at SRM IST Trichy — Yuva Tech-Fest.',
     type: 'website',
+    images: [
+      {
+        url: '/favicon.png',
+        width: 800,
+        height: 800,
+        alt: 'Yuva Tech-Fest Logo',
+      }
+    ],
+  },
+  twitter: {
+    card: 'summary',
+    images: ['/favicon.png'],
   },
 }
 
