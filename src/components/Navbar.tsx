@@ -5,6 +5,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useAuth } from '@/context/AuthContext'
+import AuthModal from '@/components/AuthModal'
+import { ChevronDown, Terminal, LogOut, QrCode, Scan } from 'lucide-react'
 
 const navLinks = [
   { label: 'Home', href: '/' },
@@ -17,7 +20,10 @@ const navLinks = [
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [authModalOpen, setAuthModalOpen] = useState(false)
+  const [dropdownOpen, setDropdownOpen] = useState(false)
   const pathname = usePathname()
+  const { user, profile, loading, logout } = useAuth()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -34,6 +40,10 @@ export default function Navbar() {
     }
     return pathname.startsWith(href)
   }
+
+  const initials = user
+    ? (profile?.name || user.displayName || user.email || 'U').charAt(0).toUpperCase()
+    : 'U'
 
   return (
     <motion.nav
@@ -73,7 +83,7 @@ export default function Navbar() {
               YUVA <span className="text-[#ff7300]">TECH-FEST</span>
             </p>
             <p className="font-mono text-[10px] text-slate-400 tracking-widest mt-0.5">
-              HACKATHON 2025
+              TECH-FEST 2025
             </p>
           </div>
         </Link>
@@ -105,20 +115,102 @@ export default function Navbar() {
             </motion.div>
           ))}
 
-          <div className="flex items-center gap-3 border-l border-slate-800 pl-6">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.7 }}
-            >
-              <Link
-                href="/register?type=student"
-                id="nav-register-btn"
+          <div className="flex items-center gap-4 border-l border-slate-800 pl-6">
+            {loading ? (
+              <span className="text-slate-500 font-mono text-[10px]">// INDEXING...</span>
+            ) : !user ? (
+              <motion.button
+                onClick={() => setAuthModalOpen(true)}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.5 }}
                 className="btn-glow px-5 py-2 text-xs block text-center"
               >
-                REGISTER NOW
-              </Link>
-            </motion.div>
+                Log In / Sign Up
+              </motion.button>
+            ) : (
+              <div className="relative">
+                <button
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  className="flex items-center gap-2 p-1.5 rounded-full hover:bg-orange-500/5 border border-slate-800 hover:border-orange-500/30 transition-all duration-300 group"
+                >
+                  <div className="w-8 h-8 rounded-full bg-orange-500/10 border border-orange-500/30 group-hover:border-[#ff7300] flex items-center justify-center text-[#ff7300] font-orbitron font-bold text-sm shadow-[0_0_10px_rgba(255,115,0,0.1)] transition-all">
+                    {initials}
+                  </div>
+                  <ChevronDown size={14} className={`text-slate-400 group-hover:text-white transition-transform duration-300 ${dropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                <AnimatePresence>
+                  {dropdownOpen && (
+                    <>
+                      {/* Transparent click-outside overlay */}
+                      <div
+                        className="fixed inset-0 z-40 cursor-default"
+                        onClick={() => setDropdownOpen(false)}
+                      />
+                      <motion.div
+                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute right-0 mt-2 w-52 glass-card rounded-xl p-2 border border-orange-500/20 bg-[#050b14]/95 shadow-2xl z-50"
+                      >
+                        <div className="px-3 py-2 border-b border-slate-800 mb-1">
+                          <p className="font-orbitron text-xs font-bold text-white truncate">
+                            {profile?.name || user.displayName || 'User'}
+                          </p>
+                          <p className="font-mono text-[9px] text-slate-500 truncate mt-0.5">
+                            {user.email}
+                          </p>
+                        </div>
+
+                        {profile?.isAdmin && (
+                          <Link
+                            href="/admin"
+                            onClick={() => setDropdownOpen(false)}
+                            className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-left text-xs font-mono text-slate-350 hover:text-white hover:bg-orange-500/10 transition-colors animate-pulse"
+                          >
+                            <Terminal size={14} className="text-[#ff7300]" />
+                            CONSOLE_PANEL
+                          </Link>
+                        )}
+
+                        {(profile?.isManager || profile?.isAdmin) && (
+                          <Link
+                            href="/scanner"
+                            onClick={() => setDropdownOpen(false)}
+                            className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-left text-xs font-mono text-slate-350 hover:text-white hover:bg-orange-500/10 transition-colors"
+                          >
+                            <Scan size={14} className="text-[#ff7300]" />
+                            SCANNER_PORTAL
+                          </Link>
+                        )}
+
+                        <Link
+                          href="/tickets"
+                          onClick={() => setDropdownOpen(false)}
+                          className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-left text-xs font-mono text-slate-350 hover:text-white hover:bg-orange-500/10 transition-colors"
+                        >
+                          <QrCode size={14} className="text-[#ff7300]" />
+                          MY_TICKETS
+                        </Link>
+
+                        <button
+                          onClick={() => {
+                            setDropdownOpen(false)
+                            logout()
+                          }}
+                          className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-left text-xs font-mono text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"
+                        >
+                          <LogOut size={14} />
+                          DISCONNECT
+                        </button>
+                      </motion.div>
+                    </>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
           </div>
         </div>
 
@@ -168,17 +260,63 @@ export default function Navbar() {
                   {link.label}
                 </Link>
               ))}
-              <Link
-                href="/register?type=student"
-                className="btn-glow px-5 py-3 text-xs text-center"
-                onClick={() => setMenuOpen(false)}
-              >
-                REGISTER NOW
-              </Link>
+              {loading ? (
+                <span className="text-slate-500 font-mono text-xs text-center py-2">// INDEXING...</span>
+              ) : !user ? (
+                <button
+                  onClick={() => {
+                    setMenuOpen(false)
+                    setAuthModalOpen(true)
+                  }}
+                  className="btn-glow px-5 py-3 text-xs text-center w-full"
+                >
+                  Log In / Sign Up
+                </button>
+              ) : (
+                <div className="flex flex-col gap-3 border-t border-slate-800 pt-4 mt-2">
+                  <div className="flex items-center gap-3 px-2 py-1.5">
+                    <div className="w-10 h-10 rounded-full bg-orange-500/10 border border-orange-500/30 flex items-center justify-center text-[#ff7300] font-orbitron font-bold text-base shadow-[0_0_10px_rgba(255,115,0,0.1)]">
+                      {initials}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-orbitron text-xs font-bold text-white truncate">
+                        {profile?.name || user.displayName || 'User'}
+                      </p>
+                      <p className="font-mono text-[9px] text-slate-500 truncate mt-0.5">
+                        {user.email}
+                      </p>
+                    </div>
+                  </div>
+
+                  {profile?.isAdmin && (
+                    <Link
+                      href="/admin"
+                      className="flex items-center gap-2 w-full px-3 py-2.5 rounded-lg text-xs font-mono text-slate-350 hover:text-white bg-orange-500/5 hover:bg-orange-500/10 border border-orange-500/10 transition-all"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      <Terminal size={14} className="text-[#ff7300]" />
+                      CONSOLE_PANEL
+                    </Link>
+                  )}
+
+                  <button
+                    onClick={() => {
+                      setMenuOpen(false)
+                      logout()
+                    }}
+                    className="flex items-center gap-2 w-full px-3 py-2.5 rounded-lg text-left text-xs font-mono text-red-400 hover:text-red-300 bg-red-500/5 hover:bg-red-500/10 border border-red-500/10 transition-all"
+                  >
+                    <LogOut size={14} />
+                    DISCONNECT
+                  </button>
+                </div>
+              )}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
     </motion.nav>
   )
 }

@@ -1,94 +1,77 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { motion, useInView } from 'framer-motion'
-import { Terminal, ShieldAlert, Bot, Sparkles, Rocket, Award, MapPin, Users } from 'lucide-react'
+import { Terminal, ShieldAlert, Bot, Sparkles, Rocket, Award, MapPin, Users, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
+import CardBlueprint from '@/components/ui/card-blueprint'
+import { collection, getDocs } from 'firebase/firestore'
+import { db } from '@/lib/firebase'
+import { defaultEvents } from '@/lib/db-seed'
 
-// ─── Data ────────────────────────────────────────────────────────────────────
+// ─── Icon Map Resolver ────────────────────────────────────────────────────────
 
-const competitions = [
-  {
-    id: 'hackathon',
-    title: 'Yuva Hackathon',
-    tagline: 'Flagship 36-hour sprint of relentless collaborative building.',
-    prize: '₹50,000 Champion Pool',
-    venue: 'CS Lab Block',
-    teamSize: '2 - 4 Members',
-    tag: 'FLAGSHIP',
-    icon: <Terminal className="w-6 h-6" />,
-    color: '#ff7300',
-    image: '/hackathon.png',
-    description: 'Assemble your squad, select a track, and code a working prototype under strict time limits. Guided by industry engineers, judged by veteran founders.',
-    regUrl: '/register?event=hackathon',
-    detailsUrl: '/events/hackathon',
-  },
-  {
-    id: 'ctf',
-    title: 'Cyber-Volt CTF',
-    tagline: 'Jeopardy-style Capture The Flag cybersecurity hacking arena.',
-    prize: '₹20,000 Cash Pool',
-    venue: 'Main Auditorium',
-    teamSize: '1 - 2 Members',
-    tag: 'CYBER',
-    icon: <ShieldAlert className="w-6 h-6" />,
-    color: '#00ff66',
-    image: '/ctf.png',
-    description: 'Test your capabilities in web penetration testing, network forensics, reverse engineering, cryptography, and binary exploitation to secure flags.',
-    regUrl: '/register?event=ctf',
-    detailsUrl: '/events/ctf',
-  },
-  {
-    id: 'dronerace',
-    title: 'Sky-Rush Drone Race',
-    tagline: 'High-speed FPV drone racing through complex obstacle loops.',
-    prize: '₹20,000 Cash Pool',
-    venue: 'University Grounds',
-    teamSize: 'Individual',
-    tag: 'AERO',
-    icon: <Rocket className="w-6 h-6" />,
-    color: '#00f0ff',
-    image: '/dronerace.png',
-    description: 'Navigate custom FPV racing drones through illuminated loops, gates, and tight corridors. The fastest pilot across the finish line wins.',
-    regUrl: '/register?event=dronerace',
-    detailsUrl: '/events/dronerace',
-  },
-  {
-    id: 'robowars',
-    title: 'Robo-Wars Arena',
-    tagline: 'Ultimate clashing arena of custom combat robotics.',
-    prize: '₹15,000 Cash Pool',
-    venue: 'Open Arena Block',
-    teamSize: '2 - 3 Members',
-    tag: 'ROBOTICS',
-    icon: <Bot className="w-6 h-6" />,
-    color: '#ff003c',
-    image: '/robowars.png',
-    description: 'Fierce battle of metal and engineering. Custom-built remote-controlled combat robots face off in a reinforced safety cage arena.',
-    regUrl: '/register?event=robowars',
-    detailsUrl: '/events/robowars',
-  },
-  {
-    id: 'workshop',
-    title: 'AI & Web3 Workshops',
-    tagline: 'Expert-led developer sessions on deep tech paradigms.',
-    prize: 'Elite Swag & Certificates',
-    venue: 'Seminar Hall 2',
-    teamSize: 'Individual',
-    tag: 'WORKSHOP',
-    icon: <Sparkles className="w-6 h-6" />,
-    color: '#ffb700',
-    image: '/workshop.png',
-    description: 'Master next-generation frameworks. Intensive hands-on workshops covering large language model fine-tuning, smart contracts, and decentralized app architectures.',
-    regUrl: '/register?event=workshop',
-    detailsUrl: '/events/workshop',
-  },
-]
+const iconMap: Record<string, React.ReactNode> = {
+  Terminal: <Terminal className="w-6 h-6" />,
+  ShieldAlert: <ShieldAlert className="w-6 h-6" />,
+  Rocket: <Rocket className="w-6 h-6" />,
+  Bot: <Bot className="w-6 h-6" />,
+  Sparkles: <Sparkles className="w-6 h-6" />
+}
+
+const getIcon = (name: string) => iconMap[name] || <Terminal className="w-6 h-6" />
 
 export default function EventsSection() {
-  const hackathon = competitions[0]
-  const otherComps = competitions.slice(1)
+  const router = useRouter()
+  const [events, setEvents] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  const loadEvents = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, 'events'))
+      const list = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }))
+      
+      if (list.length > 0) {
+        setEvents(list)
+      } else {
+        console.warn("Firestore events collection is empty. Falling back to static events.")
+        setEvents(defaultEvents)
+      }
+    } catch (error) {
+      console.error("Error loading events from Firestore, falling back to static events:", error)
+      setEvents(defaultEvents)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    loadEvents()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#020408] flex flex-col items-center justify-center gap-4 text-slate-400 font-mono">
+        <Loader2 className="animate-spin text-[#ff7300]" size={36} />
+        <p className="text-xs tracking-[0.2em]">// LOADING EVENT MATRIX...</p>
+      </div>
+    )
+  }
+
+  if (events.length === 0) {
+    return (
+      <div className="min-h-screen bg-[#020408] flex flex-col items-center justify-center gap-4 text-slate-400 font-mono">
+        <p className="text-xs tracking-[0.2em]">// ERROR: NO EVENT DATA FOUND</p>
+      </div>
+    )
+  }
+  const hackathon = events.find(e => e.id === 'hackathon') || events[0]
+  const otherComps = events.filter(e => e.id !== hackathon.id)
 
   return (
     <div className="relative min-h-screen bg-[#020408] overflow-hidden pb-32">
@@ -169,7 +152,8 @@ export default function EventsSection() {
         {/* HERO CARD: Flagship Hackathon */}
         <motion.div
           key={hackathon.title}
-          className="glass-card corner-bracket rounded-3xl border border-slate-900 bg-[#04070d]/40 hover:bg-[#070b14]/70 hover:border-orange-500/35 transition-all duration-500 hover:shadow-[0_0_45px_rgba(255,115,0,0.06)] group relative overflow-hidden flex flex-col lg:flex-row"
+          className="glass-card corner-bracket rounded-3xl border border-slate-900 bg-[#04070d]/40 hover:bg-[#070b14]/70 hover:border-orange-500/35 transition-all duration-500 hover:shadow-[0_0_45px_rgba(255,115,0,0.06)] group relative overflow-hidden flex flex-col lg:flex-row cursor-pointer"
+          onClick={() => router.push(`/events/${hackathon.id}`)}
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
@@ -182,7 +166,7 @@ export default function EventsSection() {
             <div>
               <div className="flex items-center gap-3.5 mb-6">
                 <span className="p-3 bg-orange-500/10 rounded-2xl border border-orange-500/20 text-[#ff7300]">
-                  <Terminal className="w-6 h-6" />
+                  {getIcon(hackathon.iconName)}
                 </span>
                 <div>
                   <span className="status-tag text-[9px] font-mono tracking-widest px-3 py-0.5 rounded-full uppercase text-[#ff7300] border-orange-500/25 bg-orange-500/5">
@@ -228,10 +212,18 @@ export default function EventsSection() {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link href={hackathon.detailsUrl} className="btn-outline px-6 py-3 text-xs text-center font-bold tracking-widest uppercase rounded-xl flex-1 justify-center gap-2">
-                  Explore Blueprints
+                <Link 
+                  href={hackathon.detailsUrl || `/events/${hackathon.id}`} 
+                  className="btn-outline px-6 py-3 text-xs text-center font-bold tracking-widest uppercase rounded-xl flex-1 justify-center gap-2"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Explore Details
                 </Link>
-                <Link href={hackathon.regUrl} className="btn-glow px-6 py-3 text-xs text-center font-bold tracking-widest uppercase rounded-xl flex-1 justify-center gap-2">
+                <Link 
+                  href={hackathon.regUrl || `/register?event=${hackathon.id}`} 
+                  className="btn-glow px-6 py-3 text-xs text-center font-bold tracking-widest uppercase rounded-xl flex-1 justify-center gap-2"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   Initiate Registration
                 </Link>
               </div>
@@ -242,14 +234,15 @@ export default function EventsSection() {
           <div className="lg:w-[38%] bg-[#020408]/30 p-8 flex items-center justify-center relative min-h-[280px] lg:min-h-0">
             <div className="absolute inset-4 rounded-2xl border border-slate-900/60 overflow-hidden bg-[#020408]/40">
               <Image
-                src={hackathon.image}
-                alt={hackathon.title}
+                src={hackathon.image || '/hackathon.png'}
+                alt={hackathon.title || 'Event image'}
                 fill
                 className="object-cover opacity-50 group-hover:opacity-85 transition-opacity duration-500 scale-105 group-hover:scale-100 transition-transform duration-700"
                 sizes="(max-width: 1024px) 100vw, 38vw"
                 priority
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#020408]/40 to-transparent pointer-events-none" />
+              <CardBlueprint id={hackathon.id} color={hackathon.color} />
             </div>
           </div>
         </motion.div>
@@ -258,8 +251,9 @@ export default function EventsSection() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {otherComps.map((comp, idx) => (
             <motion.div
-              key={comp.title}
-              className="glass-card corner-bracket rounded-3xl border border-slate-900 bg-[#04070d]/40 hover:bg-[#070b14]/70 hover:border-slate-800 transition-all duration-500 hover:shadow-[0_0_35px_rgba(255,115,0,0.03)] group relative overflow-hidden flex flex-col justify-between"
+              key={comp.id || idx}
+              className="glass-card corner-bracket rounded-3xl border border-slate-900 bg-[#04070d]/40 hover:bg-[#070b14]/70 hover:border-slate-800 transition-all duration-500 hover:shadow-[0_0_35px_rgba(255,115,0,0.03)] group relative overflow-hidden flex flex-col justify-between cursor-pointer"
+              onClick={() => router.push(`/events/${comp.id}`)}
               style={{
                 borderTop: `2px solid ${comp.color}20`
               }}
@@ -279,13 +273,14 @@ export default function EventsSection() {
               <div className="h-48 bg-[#020408]/40 border-b border-slate-900/60 relative flex items-center justify-center overflow-hidden">
                 <div className="absolute inset-4 rounded-xl border border-slate-900/30 overflow-hidden bg-[#020408]/20">
                   <Image
-                    src={comp.image}
-                    alt={comp.title}
+                    src={comp.image || '/hackathon.png'}
+                    alt={comp.title || 'Event image'}
                     fill
                     className="object-cover opacity-40 group-hover:opacity-75 transition-opacity duration-500 scale-105 group-hover:scale-100 transition-transform duration-700"
                     sizes="(max-width: 768px) 100vw, 50vw"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#020408]/30 to-transparent pointer-events-none" />
+                  <CardBlueprint id={comp.id} color={comp.color} />
                 </div>
               </div>
 
@@ -326,15 +321,20 @@ export default function EventsSection() {
                   </div>
 
                   <div className="flex gap-3">
-                    <Link href={comp.detailsUrl} className="btn-outline flex-1 text-center py-2.5 text-[10px] font-bold tracking-widest uppercase rounded-lg">
-                      Blueprints
+                    <Link 
+                      href={`/events/${comp.id}`}
+                      className="btn-outline flex-1 text-center py-2.5 text-[10px] font-bold tracking-widest uppercase rounded-lg"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      Details
                     </Link>
                     <Link 
-                      href={comp.regUrl} 
+                      href={comp.regUrl || `/register?event=${comp.id}`} 
                       className="btn-glow flex-1 text-center py-2.5 text-[10px] font-bold tracking-widest uppercase rounded-lg"
+                      onClick={(e) => e.stopPropagation()}
                       style={{
                         borderColor: `${comp.color}35`,
-                        color: comp.color,
+                        color: '#000000',
                         boxShadow: `0 0 15px ${comp.color}08`
                       }}
                     >

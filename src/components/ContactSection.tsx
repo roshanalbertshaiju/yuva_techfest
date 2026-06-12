@@ -5,12 +5,15 @@ import { motion } from 'framer-motion'
 import { useInView } from 'framer-motion'
 import { Send, Mail, MapPin, Instagram, Twitter, Linkedin, Github, CheckCircle, Loader2 } from 'lucide-react'
 import CyberParticles from '@/components/ui/cyber-particles'
+import CampusMap from '@/components/ui/campus-map'
+import { db } from '@/lib/firebase'
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
 
 const socials = [
-  { icon: <Instagram size={18} />, label: 'Instagram', href: 'https://instagram.com', color: '#E1306C' },
-  { icon: <Twitter size={18} />, label: 'Twitter / X', href: 'https://twitter.com', color: '#1DA1F2' },
-  { icon: <Linkedin size={18} />, label: 'LinkedIn', href: 'https://linkedin.com', color: '#0A66C2' },
-  { icon: <Github size={18} />, label: 'GitHub', href: 'https://github.com', color: '#e2e8f0' },
+  { icon: <Instagram size={18} />, label: 'Instagram', href: 'https://www.instagram.com/srmist.trichy', color: '#E1306C' },
+  { icon: <Twitter size={18} />, label: 'Twitter / X', href: 'https://x.com/srmist_trichy', color: '#1DA1F2' },
+  { icon: <Linkedin size={18} />, label: 'LinkedIn', href: 'https://www.linkedin.com/school/srm-ist-trichy', color: '#0A66C2' },
+  { icon: <Github size={18} />, label: 'GitHub', href: 'https://github.com/roshanalbertshaiju/yuva_techfest', color: '#e2e8f0' },
 ]
 
 type FormState = 'idle' | 'sending' | 'success' | 'error'
@@ -22,6 +25,7 @@ export default function ContactSection() {
   const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' })
   const [formState, setFormState] = useState<FormState>('idle')
   const [focused, setFocused] = useState<string | null>(null)
+  const [honeypot, setHoneypot] = useState('')
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }))
@@ -29,10 +33,26 @@ export default function ContactSection() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Honeypot spam protection
+    if (honeypot) {
+      setTimeout(() => {
+        setFormState('success')
+      }, 1000)
+      return
+    }
+
     setFormState('sending')
-    // Simulate async submission
-    await new Promise((r) => setTimeout(r, 1800))
-    setFormState('success')
+    try {
+      await addDoc(collection(db, 'contact_messages'), {
+        ...formData,
+        createdAt: serverTimestamp()
+      })
+      setFormState('success')
+    } catch (err) {
+      console.error("Error submitting contact message:", err)
+      setFormState('error')
+    }
   }
 
   const inputClass = (field: string) =>
@@ -184,7 +204,18 @@ export default function ContactSection() {
                   </button>
                 </motion.div>
               ) : (
-                <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+                <form onSubmit={handleSubmit} className="flex flex-col gap-5 relative">
+                  {/* Honeypot field (hidden from screen readers and visual users) */}
+                  <div className="absolute opacity-0 pointer-events-none -z-50" aria-hidden="true">
+                    <input 
+                      type="text" 
+                      name="website_url_verification" 
+                      value={honeypot} 
+                      onChange={(e) => setHoneypot(e.target.value)} 
+                      tabIndex={-1} 
+                      autoComplete="off" 
+                    />
+                  </div>
                   <div className="mb-2">
                     <h3 className="font-orbitron text-lg font-bold text-white mb-1">Send a Message</h3>
                     <p className="text-slate-500 text-xs font-mono">// Fill the form below</p>
@@ -294,11 +325,17 @@ export default function ContactSection() {
                       </>
                     )}
                   </motion.button>
+                  {formState === 'error' && (
+                    <p className="text-red-500 text-xs font-mono text-center animate-pulse mt-2">
+                      // ERROR: TRANSMISSION FAILED. PLEASE TRY AGAIN.
+                    </p>
+                  )}
                 </form>
               )}
             </div>
           </motion.div>
         </div>
+        <CampusMap />
       </div>
     </section>
   )

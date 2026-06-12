@@ -130,16 +130,16 @@ const qnaDictionary: Record<string, string> = {
   'fee': 'REGISTRATION TARIFF: ₹0.00. There is no fee to register or attend. All refreshments, main meals, late-night pizzas, developer swag kits, and workspace accommodation are completely covered.',
   'cost': 'REGISTRATION TARIFF: ₹0.00. There is no fee to register or attend. All refreshments, main meals, late-night pizzas, developer swag kits, and workspace accommodation are completely covered.',
   'money': 'REGISTRATION TARIFF: ₹0.00. There is no fee to register or attend. All refreshments, main meals, late-night pizzas, developer swag kits, and workspace accommodation are completely covered.',
-  'team': 'TEAM BUILD MATRIX: Teams must consist of 2 to 4 developers. Individual registrations are accepted; we host dedicated team-formation sessions on our official Discord server leading up to kickoff.',
-  'size': 'TEAM BUILD MATRIX: Teams must consist of 2 to 4 developers. Individual registrations are accepted; we host dedicated team-formation sessions on our official Discord server leading up to kickoff.',
-  'members': 'TEAM BUILD MATRIX: Teams must consist of 2 to 4 developers. Individual registrations are accepted; we host dedicated team-formation sessions on our official Discord server leading up to kickoff.',
+  'team': 'TEAM BUILD MATRIX: Teams must consist of 2 to 4 developers. Individual registrations are accepted; we host dedicated team-formation sessions leading up to kickoff.',
+  'size': 'TEAM BUILD MATRIX: Teams must consist of 2 to 4 developers. Individual registrations are accepted; we host dedicated team-formation sessions leading up to kickoff.',
+  'members': 'TEAM BUILD MATRIX: Teams must consist of 2 to 4 developers. Individual registrations are accepted; we host dedicated team-formation sessions leading up to kickoff.',
   'prize': 'PRIZE ARRAY: Over ₹1,00,000 in total cash pool. Champion: ₹50,000 + Trophy. 2nd Place: ₹30,000. 3rd Place: ₹20,000. Additionally, six specific Track Winners receive ₹5,000 cash rewards each. Swag is provided to all contestants.',
   'award': 'PRIZE ARRAY: Over ₹1,00,000 in total cash pool. Champion: ₹50,000 + Trophy. 2nd Place: ₹30,000. 3rd Place: ₹20,000. Additionally, six specific Track Winners receive ₹5,000 cash rewards each. Swag is provided to all contestants.',
   'cash': 'PRIZE ARRAY: Over ₹1,00,000 in total cash pool. Champion: ₹50,000 + Trophy. 2nd Place: ₹30,000. 3rd Place: ₹20,000. Additionally, six specific Track Winners receive ₹5,000 cash rewards each. Swag is provided to all contestants.',
   'prizes': 'PRIZE ARRAY: Over ₹1,00,000 in total cash pool. Champion: ₹50,000 + Trophy. 2nd Place: ₹30,000. 3rd Place: ₹20,000. Additionally, six specific Track Winners receive ₹5,000 cash rewards each. Swag is provided to all contestants.',
-  'contact': 'COMMUNICATION PORTAL: For official queries, contact yuvafest@srmtrichy.edu.in. Registered candidates receive an automated link to access the hackathon Discord server.',
-  'email': 'COMMUNICATION PORTAL: For official queries, contact yuvafest@srmtrichy.edu.in. Registered candidates receive an automated link to access the hackathon Discord server.',
-  'phone': 'COMMUNICATION PORTAL: For official queries, contact yuvafest@srmtrichy.edu.in. Registered candidates receive an automated link to access the hackathon Discord server.'
+  'contact': 'COMMUNICATION PORTAL: For official queries, contact yuvafest@srmtrichy.edu.in. Registered candidates receive official setup guidelines leading up to kickoff.',
+  'email': 'COMMUNICATION PORTAL: For official queries, contact yuvafest@srmtrichy.edu.in. Registered candidates receive official setup guidelines leading up to kickoff.',
+  'phone': 'COMMUNICATION PORTAL: For official queries, contact yuvafest@srmtrichy.edu.in. Registered candidates receive official setup guidelines leading up to kickoff.'
 }
 
 // Prompt pills configuration

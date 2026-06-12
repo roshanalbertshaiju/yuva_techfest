@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint src --ext .ts,.tsx"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",
@@ -14,7 +14,9 @@
     "@splinetool/react-spline": "^4.1.0",
     "@splinetool/runtime": "^1.12.97",
     "clsx": "^2.1.1",
+    "firebase": "^12.14.0",
     "framer-motion": "^11.18.2",
+    "html5-qrcode": "^2.3.8",
     "lucide-react": "^0.468.0",
     "next": "^16.2.7",
     "react": "^19.0.0",
@@ -28,8 +30,8 @@
     "@types/react-dom": "^19",
     "@types/three": "^0.169.0",
     "autoprefixer": "^10.0.1",
-    "eslint": "^8",
-    "eslint-config-next": "15.3.3",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.7",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"

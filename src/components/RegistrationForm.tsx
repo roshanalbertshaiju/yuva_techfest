@@ -7,6 +7,11 @@ import {
   User, Mail, School, Users, Globe, Folder, Building, 
   Phone, ArrowRight, ArrowLeft, CheckCircle, Loader2 
 } from 'lucide-react'
+import { db } from '@/lib/firebase'
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
+import { useAuth } from '@/context/AuthContext'
+import AuthModal from '@/components/AuthModal'
+import CustomSelect from '@/components/ui/custom-select'
 
 type RegType = 'student' | 'sponsor'
 type FormStatus = 'idle' | 'submitting' | 'success' | 'error'
@@ -14,6 +19,8 @@ type FormStatus = 'idle' | 'submitting' | 'success' | 'error'
 export default function RegistrationForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { user } = useAuth()
+  const [authModalOpen, setAuthModalOpen] = useState(false)
   
   // Set initial tab from query param or default to student
   const [activeTab, setActiveTab] = useState<RegType>('student')
@@ -118,12 +125,62 @@ export default function RegistrationForm() {
     setSponsorForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
   }
 
+  const [honeypot, setHoneypot] = useState('')
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (activeTab === 'student' && !user) {
+      setAuthModalOpen(true)
+      return
+    }
+
     setStatus('submitting')
-    // Simulate API submission
-    await new Promise(r => setTimeout(r, 2000))
-    setStatus('success')
+
+    // Honeypot spam protection
+    if (honeypot) {
+      setTimeout(() => {
+        setStatus('success')
+      }, 1000)
+      return
+    }
+
+    try {
+      if (activeTab === 'student') {
+        if (!user) {
+          setAuthModalOpen(true)
+          setStatus('idle')
+          return
+        }
+        const regRef = await addDoc(collection(db, 'registrations'), {
+          type: 'student',
+          uid: user.uid,
+          eventId: selectedEvent,
+          ...studentForm,
+          createdAt: serverTimestamp(),
+        })
+
+        await addDoc(collection(db, 'tickets'), {
+          uid: user.uid,
+          registrationId: regRef.id,
+          eventId: selectedEvent,
+          eventName: studentForm.track,
+          studentName: studentForm.name,
+          studentEmail: studentForm.email,
+          createdAt: serverTimestamp(),
+        })
+      } else {
+        await addDoc(collection(db, 'sponsorships'), {
+          type: 'sponsor',
+          ...sponsorForm,
+          createdAt: serverTimestamp(),
+        })
+      }
+      setStatus('success')
+    } catch (error) {
+      console.error('Error submitting form to Firebase:', error)
+      setStatus('error')
+    }
   }
 
   return (
@@ -146,8 +203,8 @@ export default function RegistrationForm() {
             <h2 className="font-orbitron text-2xl font-bold text-white mb-2">Registration Confirmed!</h2>
             <p className="text-slate-400 text-sm max-w-md mx-auto leading-relaxed">
               {activeTab === 'student' 
-                ? "You have been registered for Yuva Tech-Fest Hackathon. A confirmation email has been sent along with the Discord invite code."
-                : "Thank you for partnering with us! Our partnership team will contact you within the next 24 hours with sponsorship materials."
+                ? "You have been registered for Yuva Tech-Fest. You can coordinate with your team members to prepare for the events. We will see you at the campus!"
+                : "Thank you for partnering with us! Our partnership team will contact you within the next 24 hours with sponsorship details."
               }
             </p>
           </div>
@@ -172,6 +229,17 @@ export default function RegistrationForm() {
         </motion.div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
+          {/* Honeypot field (hidden from screen readers and visual users) */}
+          <div className="absolute opacity-0 pointer-events-none -z-50" aria-hidden="true">
+            <input 
+              type="text" 
+              name="website_url_verification" 
+              value={honeypot} 
+              onChange={(e) => setHoneypot(e.target.value)} 
+              tabIndex={-1} 
+              autoComplete="off" 
+            />
+          </div>
           <div className="flex justify-between items-center mb-4">
             <div>
               <h1 className="font-orbitron text-xl sm:text-2xl font-black text-white">
@@ -290,80 +358,71 @@ export default function RegistrationForm() {
                   {/* Year of study */}
                   <div className="relative">
                     <label className="block font-mono text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Year of Study</label>
-                    <select
-                      name="year"
+                    <CustomSelect
                       value={studentForm.year}
-                      onChange={handleStudentChange}
-                      className="cyber-input w-full rounded-lg px-4 py-3 text-xs cursor-pointer appearance-none"
-                    >
-                      <option value="1">1st Year</option>
-                      <option value="2">2nd Year</option>
-                      <option value="3">3rd Year</option>
-                      <option value="4">4th Year</option>
-                      <option value="PG">Postgraduate</option>
-                    </select>
+                      onChange={(val) => setStudentForm(prev => ({ ...prev, year: val }))}
+                      options={[
+                        { value: '1', label: '1st Year' },
+                        { value: '2', label: '2nd Year' },
+                        { value: '3', label: '3rd Year' },
+                        { value: '4', label: '4th Year' },
+                        { value: 'PG', label: 'Postgraduate' }
+                      ]}
+                    />
                   </div>
                 </div>
 
                 {/* Event Selection */}
                 <div className="relative">
                   <label className="block font-mono text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Select Event / Competition</label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><Folder size={14} /></span>
-                    <select
-                      name="event"
-                      value={selectedEvent}
-                      disabled={!!eventParam}
-                      onChange={(e) => handleEventChange(e.target.value)}
-                      className={`cyber-input w-full rounded-lg pl-9 pr-4 py-3 text-xs appearance-none ${
-                        eventParam ? 'opacity-60 cursor-not-allowed bg-slate-900/50' : 'cursor-pointer'
-                      }`}
-                    >
-                      <option value="hackathon">Flagship Hackathon</option>
-                      <option value="ctf">Cyber-Volt CTF</option>
-                      <option value="dronerace">Sky-Rush Drone Race</option>
-                      <option value="robowars">Robo-Wars Arena</option>
-                      <option value="workshop">AI & Web3 Workshops</option>
-                    </select>
-                  </div>
+                  <CustomSelect
+                    value={selectedEvent}
+                    disabled={!!eventParam}
+                    onChange={handleEventChange}
+                    icon={<Folder size={14} />}
+                    options={[
+                      { value: 'hackathon', label: 'Flagship Hackathon' },
+                      { value: 'ctf', label: 'Cyber-Volt CTF' },
+                      { value: 'dronerace', label: 'Sky-Rush Drone Race' },
+                      { value: 'robowars', label: 'Robo-Wars Arena' },
+                      { value: 'workshop', label: 'AI & Web3 Workshops' }
+                    ]}
+                  />
                 </div>
 
                 <div className="grid sm:grid-cols-2 gap-4">
                   {/* Team Size */}
                   <div className="relative">
                     <label className="block font-mono text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Team Size</label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><Users size={14} /></span>
-                      <select
-                        name="teamSize"
-                        value={studentForm.teamSize}
-                        onChange={handleStudentChange}
-                        className="cyber-input w-full rounded-lg pl-9 pr-4 py-3 text-xs cursor-pointer appearance-none"
-                      >
-                        {selectedEvent === 'ctf' && (
-                          <>
-                            <option value="1">1 (Individual)</option>
-                            <option value="2">2 Members</option>
-                          </>
-                        )}
-                        {(selectedEvent === 'dronerace' || selectedEvent === 'workshop') && (
-                          <option value="1">1 (Individual)</option>
-                        )}
-                        {selectedEvent === 'robowars' && (
-                          <>
-                            <option value="2">2 Members</option>
-                            <option value="3">3 Members</option>
-                          </>
-                        )}
-                        {selectedEvent === 'hackathon' && (
-                          <>
-                            <option value="2">2 Members</option>
-                            <option value="3">3 Members</option>
-                            <option value="4">4 Members</option>
-                          </>
-                        )}
-                      </select>
-                    </div>
+                    <CustomSelect
+                      value={studentForm.teamSize}
+                      onChange={(val) => setStudentForm(prev => ({ ...prev, teamSize: val }))}
+                      icon={<Users size={14} />}
+                      options={(() => {
+                        if (selectedEvent === 'ctf') {
+                          return [
+                            { value: '1', label: '1 (Individual)' },
+                            { value: '2', label: '2 Members' }
+                          ]
+                        }
+                        if (selectedEvent === 'dronerace' || selectedEvent === 'workshop') {
+                          return [
+                            { value: '1', label: '1 (Individual)' }
+                          ]
+                        }
+                        if (selectedEvent === 'robowars') {
+                          return [
+                            { value: '2', label: '2 Members' },
+                            { value: '3', label: '3 Members' }
+                          ]
+                        }
+                        return [
+                          { value: '2', label: '2 Members' },
+                          { value: '3', label: '3 Members' },
+                          { value: '4', label: '4 Members' }
+                        ]
+                      })()}
+                    />
                   </div>
 
                   {/* Track Interest / Event Readonly Indicator */}
@@ -371,23 +430,23 @@ export default function RegistrationForm() {
                     <label className="block font-mono text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">
                       {selectedEvent === 'hackathon' ? 'Challenge Track of Interest' : 'Selected Event'}
                     </label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><Folder size={14} /></span>
-                      {selectedEvent === 'hackathon' ? (
-                        <select
-                          name="track"
-                          value={studentForm.track}
-                          onChange={handleStudentChange}
-                          className="cyber-input w-full rounded-lg pl-9 pr-4 py-3 text-xs cursor-pointer appearance-none"
-                        >
-                          <option value="AI & Machine Learning">AI & Machine Learning</option>
-                          <option value="Web3 & Blockchain">Web3 & Blockchain</option>
-                          <option value="Cybersecurity">Cybersecurity</option>
-                          <option value="FinTech & EdTech">FinTech & EdTech</option>
-                          <option value="IoT & Smart Cities">IoT & Smart Cities</option>
-                          <option value="Open Innovation">Open Innovation (Wildcard)</option>
-                        </select>
-                      ) : (
+                    {selectedEvent === 'hackathon' ? (
+                      <CustomSelect
+                        value={studentForm.track}
+                        onChange={(val) => setStudentForm(prev => ({ ...prev, track: val }))}
+                        icon={<Folder size={14} />}
+                        options={[
+                          { value: 'AI & Machine Learning', label: 'AI & Machine Learning' },
+                          { value: 'Web3 & Blockchain', label: 'Web3 & Blockchain' },
+                          { value: 'Cybersecurity', label: 'Cybersecurity' },
+                          { value: 'FinTech & EdTech', label: 'FinTech & EdTech' },
+                          { value: 'IoT & Smart Cities', label: 'IoT & Smart Cities' },
+                          { value: 'Open Innovation', label: 'Open Innovation (Wildcard)' }
+                        ]}
+                      />
+                    ) : (
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><Folder size={14} /></span>
                         <input
                           type="text"
                           name="track"
@@ -395,8 +454,8 @@ export default function RegistrationForm() {
                           value={studentForm.track}
                           className="cyber-input w-full rounded-lg pl-9 pr-4 py-3 text-xs opacity-75 cursor-not-allowed bg-slate-900/30"
                         />
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -518,18 +577,17 @@ export default function RegistrationForm() {
                 {/* Sponsor Tier */}
                 <div className="relative">
                   <label className="block font-mono text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Sponsorship Tier Preference</label>
-                  <select
-                    name="tier"
+                  <CustomSelect
                     value={sponsorForm.tier}
-                    onChange={handleSponsorChange}
-                    className="cyber-input w-full rounded-lg px-4 py-3 text-xs cursor-pointer appearance-none"
-                  >
-                    <option value="Title Sponsor">Title Sponsor Preference</option>
-                    <option value="Platinum Partners">Platinum Partners Tier</option>
-                    <option value="Gold Partners">Gold Partners Tier</option>
-                    <option value="Custom Partnership">Custom Collaboration / Developer Swag</option>
-                  </select>
-                </div>
+                    onChange={(val) => setSponsorForm(prev => ({ ...prev, tier: val }))}
+                    options={[
+                      { value: "Title Sponsor", label: "Title Sponsor Preference" },
+                      { value: "Platinum Partners", label: "Platinum Partners Tier" },
+                      { value: "Gold Partners", label: "Gold Partners Tier" },
+                      { value: "Custom Partnership", label: "Custom Collaboration / Developer Swag" }
+                ]}
+              />
+            </div>
 
                 {/* Notes/Queries */}
                 <div className="relative">
@@ -548,27 +606,40 @@ export default function RegistrationForm() {
           </AnimatePresence>
 
           {/* Submit Buttons */}
-          <motion.button
-            type="submit"
-            disabled={status === 'submitting'}
-            className="btn-glow w-full py-4 text-xs font-bold flex items-center justify-center gap-2 disabled:opacity-75"
-            whileHover={status !== 'submitting' ? { scale: 1.02 } : {}}
-            whileTap={status !== 'submitting' ? { scale: 0.98 } : {}}
-          >
-            {status === 'submitting' ? (
-              <>
-                <Loader2 size={16} className="animate-spin" />
-                TRANSMITTING DATAFEED...
-              </>
-            ) : (
-              <>
-                SUBMIT REGISTRATION
-                <ArrowRight size={14} />
-              </>
+          <div className="space-y-4">
+            {status === 'error' && (
+              <p className="text-red-500 text-xs font-mono text-center animate-pulse">
+                // ERROR: TRANSMISSION FAILED. PLEASE TRY AGAIN.
+              </p>
             )}
-          </motion.button>
+            <motion.button
+              type="submit"
+              disabled={status === 'submitting'}
+              className="btn-glow w-full py-4 text-xs font-bold flex items-center justify-center gap-2 disabled:opacity-75"
+              whileHover={status !== 'submitting' ? { scale: 1.02 } : {}}
+              whileTap={status !== 'submitting' ? { scale: 0.98 } : {}}
+            >
+              {activeTab === 'student' && !user ? (
+                <>
+                  LOG IN / SIGN UP TO REGISTER
+                  <ArrowRight size={14} />
+                </>
+              ) : status === 'submitting' ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" />
+                  TRANSMITTING DATAFEED...
+                </>
+              ) : (
+                <>
+                  SUBMIT REGISTRATION
+                  <ArrowRight size={14} />
+                </>
+              )}
+            </motion.button>
+          </div>
         </form>
       )}
+      <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
     </div>
   )
 }

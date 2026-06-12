@@ -1,6 +1,9 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { doc, getDoc } from 'firebase/firestore'
+import { db } from '@/lib/firebase'
+import { defaultSettings } from '@/lib/db-seed'
 
 interface TimeLeft {
   days: number
@@ -10,46 +13,54 @@ interface TimeLeft {
   isExpired: boolean
 }
 
+interface CountdownConfig {
+  targetDate: string
+  label: string
+  expiredMessage: string
+}
+
 export default function CountdownTimer() {
-  const calculateTimeLeft = (): TimeLeft => {
-    // Target: August 31, 2026 11:59 PM (23:59:00)
-    // Note: Month is 0-indexed in JavaScript Date constructor (7 = August)
-    const targetDate = new Date(2026, 7, 31, 23, 59, 0)
-    const difference = +targetDate - +new Date()
-    
-    let timeLeft: TimeLeft = {
-      days: 0,
-      hours: 0,
-      minutes: 0,
-      seconds: 0,
-      isExpired: false
-    }
-
-    if (difference > 0) {
-      timeLeft = {
-        days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-        hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-        minutes: Math.floor((difference / 1000 / 60) % 60),
-        seconds: Math.floor((difference / 1000) % 60),
-        isExpired: false
-      }
-    } else {
-      timeLeft.isExpired = true
-    }
-
-    return timeLeft
-  }
-
+  const [config, setConfig] = useState<CountdownConfig>(defaultSettings.countdown)
   const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(null)
 
   useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const snap = await getDoc(doc(db, 'settings', 'countdown'))
+        if (snap.exists()) {
+          setConfig(snap.data() as CountdownConfig)
+        }
+      } catch {
+        // use default config
+      }
+    }
+    fetchConfig()
+  }, [])
+
+  useEffect(() => {
+    const calculateTimeLeft = (): TimeLeft => {
+      const targetDate = new Date(config.targetDate)
+      const difference = +targetDate - +new Date()
+
+      if (difference > 0) {
+        return {
+          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+          minutes: Math.floor((difference / 1000 / 60) % 60),
+          seconds: Math.floor((difference / 1000) % 60),
+          isExpired: false,
+        }
+      }
+      return { days: 0, hours: 0, minutes: 0, seconds: 0, isExpired: true }
+    }
+
     setTimeLeft(calculateTimeLeft())
     const timer = setInterval(() => {
       setTimeLeft(calculateTimeLeft())
     }, 1000)
 
     return () => clearInterval(timer)
-  }, [])
+  }, [config.targetDate])
 
   if (!timeLeft) {
     return (
@@ -63,7 +74,7 @@ export default function CountdownTimer() {
     return (
       <div className="flex justify-center items-center px-8 py-4 bg-red-950/20 backdrop-blur-md border border-red-500/30 rounded-xl shadow-[0_0_30px_rgba(239,68,68,0.1)] max-w-md mx-auto">
         <span className="font-orbitron font-bold text-red-500 tracking-[0.15em] text-lg md:text-xl animate-pulse text-center">
-          MISSION INITIATED / REGISTRATION CLOSED
+          {config.expiredMessage}
         </span>
       </div>
     )
@@ -89,7 +100,7 @@ export default function CountdownTimer() {
         {/* Small header/label */}
         <div className="flex justify-between items-center mb-3 sm:mb-4 border-b border-orange-500/10 pb-2 sm:pb-2.5">
           <span className="font-mono text-[8px] sm:text-[11px] tracking-[0.15em] sm:tracking-[0.2em] text-orange-400 font-semibold uppercase">
-            REGISTRATION DEADLINE COUNTDOWN
+            {config.label}
           </span>
           <span className="font-mono text-[8px] sm:text-[11px] tracking-[0.1em] sm:tracking-[0.15em] text-orange-300/40 flex items-center gap-1 sm:gap-1.5 font-semibold">
             <span className="w-1 sm:w-1.5 h-1 sm:h-1.5 rounded-full bg-orange-500 animate-pulse shadow-[0_0_8px_#ff7300]" />

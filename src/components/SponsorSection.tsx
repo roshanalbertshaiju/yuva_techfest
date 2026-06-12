@@ -5,13 +5,66 @@ import { Cpu, Terminal, Disc, ShieldCheck, Database, Layers, Award, Sparkles } f
 import CyberParticles from '@/components/ui/cyber-particles'
 import Link from 'next/link'
 
+const SolanaLogo = () => (
+  <svg className="w-12 h-8" viewBox="0 0 100 60" fill="none">
+    <defs>
+      <linearGradient id="solanaGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stopColor="#00FFA3" />
+        <stop offset="50%" stopColor="#03E1FF" />
+        <stop offset="100%" stopColor="#DC1FFF" />
+      </linearGradient>
+    </defs>
+    <path d="M 10 12 L 90 12 L 80 22 L 0 22 Z" fill="url(#solanaGrad)" />
+    <path d="M 0 25 L 80 25 L 90 35 L 10 35 Z" fill="url(#solanaGrad)" />
+    <path d="M 10 38 L 90 38 L 80 48 L 0 48 Z" fill="url(#solanaGrad)" />
+  </svg>
+)
+
+const PolygonLogo = () => (
+  <svg className="w-12 h-10" viewBox="0 0 80 60" fill="none">
+    <path d="M 30 10 L 45 18 L 45 34 L 30 42 L 15 34 L 15 18 Z" fill="#8247E5" fillOpacity="0.15" stroke="#8247E5" strokeWidth="2.5" />
+    <path d="M 50 18 L 65 26 L 65 42 L 50 50 L 35 42 L 35 26 Z" fill="#8247E5" fillOpacity="0.15" stroke="#8247E5" strokeWidth="2.5" />
+    <path d="M 35 26 L 45 18" stroke="#8247E5" strokeWidth="3" />
+    <path d="M 35 42 L 45 34" stroke="#8247E5" strokeWidth="3" />
+  </svg>
+)
+
+const DevfolioLogo = () => (
+  <svg className="w-10 h-10" viewBox="0 0 100 100" fill="none">
+    <path d="M 25 15 L 75 15 L 75 85 L 25 85 Z" fill="#3770FF" fillOpacity="0.15" stroke="#3770FF" strokeWidth="4" />
+    <path d="M 45 35 L 45 65 L 65 50 Z" fill="#3770FF" />
+  </svg>
+)
+
+const FilecoinLogo = () => (
+  <svg className="w-10 h-10" viewBox="0 0 100 100" fill="none">
+    <circle cx="50" cy="50" r="35" stroke="#0090FF" strokeWidth="4" fill="#0090FF" fillOpacity="0.1" />
+    <path d="M 40 35 L 65 35 M 40 50 L 60 50 M 40 30 L 40 70" stroke="#0090FF" strokeWidth="4" strokeLinecap="round" />
+  </svg>
+)
+
+const Auth0Logo = () => (
+  <svg className="w-8 h-10" viewBox="0 0 80 100" fill="none">
+    <path d="M 40 10 L 70 25 L 70 55 C 70 75 40 90 40 90 C 40 90 10 75 10 55 L 10 25 Z" fill="#EB5424" fillOpacity="0.15" stroke="#EB5424" strokeWidth="4" strokeLinejoin="round" />
+    <path d="M 30 40 L 50 60 M 50 40 L 30 60" stroke="#EB5424" strokeWidth="4" strokeLinecap="round" />
+  </svg>
+)
+
+const SrmLogo = () => (
+  <svg className="w-12 h-12" viewBox="0 0 100 100" fill="none">
+    <circle cx="50" cy="50" r="36" stroke="#ff7300" strokeWidth="3.5" fill="#ff7300" fillOpacity="0.1" />
+    <path d="M 34 44 L 50 28 L 66 44 L 66 70 L 34 70 Z" stroke="#ff7300" strokeWidth="3" />
+    <text x="39" y="58" fill="#ff7300" className="font-mono text-[9px] font-bold tracking-wider">SRM</text>
+  </svg>
+)
+
 const sponsorTiers = [
   {
     tier: 'Title Sponsor',
     cardClass: 'border-amber-500/30 bg-gradient-to-b from-amber-500/5 to-transparent shadow-[0_0_30px_rgba(245,158,11,0.05)] hover:border-amber-500/60',
     textClass: 'text-amber-500 font-bold tracking-[0.2em]',
     sponsors: [
-      { name: 'SRM Technologies', description: 'Driving Innovation & Digital Solutions', icon: <Cpu className="w-10 h-10 text-amber-500" /> }
+      { name: 'SRM Technologies', description: 'Driving Innovation & Digital Solutions', icon: <SrmLogo /> }
     ]
   },
   {
@@ -19,8 +72,8 @@ const sponsorTiers = [
     cardClass: 'border-slate-300/20 bg-gradient-to-b from-slate-300/5 to-transparent hover:border-slate-300/40',
     textClass: 'text-slate-300 font-semibold tracking-[0.15em]',
     sponsors: [
-      { name: 'DevFolio', description: 'Empowering Builders Worldwide', icon: <Terminal className="w-8 h-8 text-orange-500" /> },
-      { name: 'Solana Foundation', description: 'Decentralized High-Speed Blockchain', icon: <Disc className="w-8 h-8 text-purple-500" /> }
+      { name: 'DevFolio', description: 'Empowering Builders Worldwide', icon: <DevfolioLogo /> },
+      { name: 'Solana Foundation', description: 'Decentralized High-Speed Blockchain', icon: <SolanaLogo /> }
     ]
   },
   {
@@ -28,9 +81,9 @@ const sponsorTiers = [
     cardClass: 'border-amber-700/20 bg-gradient-to-b from-amber-700/5 to-transparent hover:border-amber-700/40',
     textClass: 'text-amber-500 font-medium tracking-[0.1em]',
     sponsors: [
-      { name: 'Polygon', description: 'Scaling Ethereum Infrastructure', icon: <Layers className="w-7 h-7 text-indigo-500" /> },
-      { name: 'Filecoin', description: 'Decentralized Storage Network', icon: <Database className="w-7 h-7 text-blue-500" /> },
-      { name: 'Auth0', description: 'Secure Identity Platform', icon: <ShieldCheck className="w-7 h-7 text-orange-600" /> }
+      { name: 'Polygon', description: 'Scaling Ethereum Infrastructure', icon: <PolygonLogo /> },
+      { name: 'Filecoin', description: 'Decentralized Storage Network', icon: <FilecoinLogo /> },
+      { name: 'Auth0', description: 'Secure Identity Platform', icon: <Auth0Logo /> }
     ]
   }
 ]
@@ -111,7 +164,7 @@ export default function SponsorSection() {
             Want to Sponsor Yuva Tech-Fest?
           </h3>
           <p className="text-slate-400 text-sm max-w-xl mx-auto leading-relaxed mb-8">
-            Connect with hundreds of bright minds, showcase your products, recruit top talent, and build brand presence at SRM IST's premier coding festival.
+            Connect with hundreds of bright minds, showcase your products, recruit top talent, and build brand presence at SRM IST&apos;s premier coding festival.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link href="/contact" className="btn-glow px-8 py-3 text-xs">

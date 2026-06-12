@@ -1,58 +1,48 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { HelpCircle, ChevronDown, Search } from 'lucide-react'
 import CyberParticles from '@/components/ui/cyber-particles'
+import { collection, getDocs, orderBy, query } from 'firebase/firestore'
+import { db } from '@/lib/firebase'
+import { defaultFaqs } from '@/lib/db-seed'
 
-const faqCategories = ['All', 'General', 'Teams', 'Participation', 'Prizes']
+const FAQ_CATEGORIES = ['All', 'General', 'Teams', 'Participation', 'Prizes']
 
-const faqs = [
-  {
-    question: 'Who can participate in Yuva Tech-Fest Hackathon?',
-    answer: 'Any student currently enrolled in an undergraduate or postgraduate program in any college or university is welcome to register and participate. No prior hackathon experience is required!',
-    category: 'General'
-  },
-  {
-    question: 'Is there a registration fee?',
-    answer: 'No, participation in the Yuva Tech-Fest Hackathon is completely free of charge. We provide mentorship, food, workspace, and cool swag without any entry fees.',
-    category: 'General'
-  },
-  {
-    question: 'What is the team size requirement?',
-    answer: 'You can form teams of 2 to 4 members. We encourage multidisciplinary teams with a mix of developers, designers, and domain experts.',
-    category: 'Teams'
-  },
-  {
-    question: 'Can I participate individually?',
-    answer: 'To ensure a collaborative experience and manageable judging, participation is restricted to teams of 2 to 4 members. If you do not have a team, you can join our Discord channel to find teammates.',
-    category: 'Teams'
-  },
-  {
-    question: 'What is the format of the hackathon?',
-    answer: 'It is a 36-hour in-person hackathon hosted at SRM IST Tiruchirappalli. Teams will build their software or hardware prototypes based on the track selected, with regular mentoring checkpoints.',
-    category: 'Participation'
-  },
-  {
-    question: 'What should I bring to the event?',
-    answer: 'You must bring your own laptops, chargers, mobile devices, extension cords, and any specific hardware components you plan to use. Don\'t forget your college ID card and basic personal items for overnight stay.',
-    category: 'Participation'
-  },
-  {
-    question: 'What are the prizes and awards?',
-    answer: 'We have a prize pool of ₹1 Lakh+ distributed among the top 3 overall winners, track winners, and special category prizes (like Best All-Women Team, Best Beginner Team, and sponsors APIs prizes).',
-    category: 'Prizes'
-  }
-]
+interface FAQ {
+  id: string
+  question: string
+  answer: string
+  category: string
+  order?: number
+}
 
 export default function FAQSection() {
+  const [faqs, setFaqs] = useState<FAQ[]>(defaultFaqs)
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [searchQuery, setSearchQuery] = useState('')
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null)
 
+  useEffect(() => {
+    const fetchFaqs = async () => {
+      try {
+        const q = query(collection(db, 'faqs'), orderBy('order', 'asc'))
+        const snapshot = await getDocs(q)
+        if (!snapshot.empty) {
+          const data = snapshot.docs.map(d => ({ id: d.id, ...d.data() })) as FAQ[]
+          setFaqs(data)
+        }
+      } catch {
+        // fallback to defaults already in state
+      }
+    }
+    fetchFaqs()
+  }, [])
+
   const filteredFaqs = faqs.filter((faq) => {
     const matchesCategory = selectedCategory === 'All' || faq.category === selectedCategory
-    const matchesSearch = faq.question.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    const matchesSearch = faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           faq.answer.toLowerCase().includes(searchQuery.toLowerCase())
     return matchesCategory && matchesSearch
   })
@@ -68,7 +58,7 @@ export default function FAQSection() {
         {/* Title */}
         <div className="text-center mb-16">
           <span className="font-mono text-xs text-[#ff7300] tracking-[0.3em] uppercase mb-4 block">
-            // QUESTIONS & ANSWERS
+            // QUESTIONS &amp; ANSWERS
           </span>
           <h2 className="font-orbitron text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">
             Frequently Asked
@@ -83,7 +73,7 @@ export default function FAQSection() {
         <div className="flex flex-col md:flex-row gap-4 justify-between items-center mb-10">
           {/* Category Tabs */}
           <div className="flex flex-wrap gap-2 justify-center">
-            {faqCategories.map((cat) => (
+            {FAQ_CATEGORIES.map((cat) => (
               <button
                 key={cat}
                 onClick={() => {
@@ -127,7 +117,7 @@ export default function FAQSection() {
                 const isOpen = expandedIndex === index
                 return (
                   <motion.div
-                    key={faq.question}
+                    key={faq.id}
                     layout
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}

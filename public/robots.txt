@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Host
+Host: https://yuva-techfest.firebaseapp.com
+
+# Sitemaps
+Sitemap: https://yuva-techfest.firebaseapp.com/sitemap.xml

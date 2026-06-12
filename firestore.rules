@@ -1,0 +1,160 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helper functions ────────────────────────────────────────────
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isSuperAdmin() {
+      return isAuthenticated()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isSuperAdmin == true;
+    }
+
+    function isAdmin() {
+      return isAuthenticated()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true
+            || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isSuperAdmin == true);
+    }
+
+    function isManager() {
+      return isAuthenticated()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isManager == true
+            || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true
+            || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isSuperAdmin == true);
+    }
+
+    // ── users ───────────────────────────────────────────────────────
+    // Users can read their own doc; admins/superAdmins can read all
+    // Only superAdmin can write isAdmin or isSuperAdmin fields
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+
+      // New user creates their own doc — isAdmin, isSuperAdmin & isManager must be false
+      allow create: if isAuthenticated()
+        && request.auth.uid == userId
+        && request.resource.data.isAdmin == false
+        && request.resource.data.get('isSuperAdmin', false) == false
+        && request.resource.data.get('isManager', false) == false;
+
+      // User updates their own doc — cannot touch isAdmin, isSuperAdmin, or isManager
+      allow update: if isAuthenticated()
+        && request.auth.uid == userId
+        && !request.resource.data.keys().hasAny(['isAdmin', 'isSuperAdmin', 'isManager']);
+
+      // Admins and superAdmins can write/update user docs (grant/revoke roles)
+      allow write: if isAdmin();
+    }
+
+    // ── events ──────────────────────────────────────────────────────
+    match /events/{eventId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ── team ────────────────────────────────────────────────────────
+    match /team/{memberId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ── faqs ────────────────────────────────────────────────────────
+    match /faqs/{faqId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ── announcements ───────────────────────────────────────────────
+    match /announcements/{announcementId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ── gallery ─────────────────────────────────────────────────────
+    match /gallery/{itemId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /registrations/{regId} {
+      allow read: if isAuthenticated()
+        && (resource == null || resource.data.uid == request.auth.uid || isManager());
+      allow create: if isAuthenticated()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.keys().hasOnly(['type', 'uid', 'name', 'email', 'college', 'year', 'teamSize', 'track', 'github', 'linkedin', 'createdAt', 'eventId'])
+        && request.resource.data.type == 'student'
+        && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 100
+        && request.resource.data.email is string && request.resource.data.email.size() > 0 && request.resource.data.email.size() <= 100 && request.resource.data.email.matches('^[^@]+@[^@]+\\.[^@]+$')
+        && request.resource.data.college is string && request.resource.data.college.size() > 0 && request.resource.data.college.size() <= 150
+        && request.resource.data.year is string && request.resource.data.year.matches('^[1-5]$')
+        && request.resource.data.teamSize is string && request.resource.data.teamSize.matches('^[1-9][0-9]?$')
+        && request.resource.data.track is string && request.resource.data.track.size() > 0 && request.resource.data.track.size() <= 100
+        && request.resource.data.github is string && request.resource.data.github.size() <= 200
+        && request.resource.data.linkedin is string && request.resource.data.linkedin.size() <= 200
+        && request.resource.data.eventId is string && request.resource.data.eventId.size() > 0 && request.resource.data.eventId.size() <= 50
+        && request.resource.data.createdAt == request.time;
+      allow delete: if isAuthenticated()
+        && resource.data.uid == request.auth.uid;
+      allow update: if isManager();
+    }
+
+    // ── sponsorships ────────────────────────────────────────────────
+    match /sponsorships/{sponsId} {
+      allow create: if request.resource.data.keys().hasOnly(['type', 'companyName', 'contactName', 'email', 'phone', 'tier', 'notes', 'createdAt'])
+        && request.resource.data.type == 'sponsor'
+        && request.resource.data.companyName is string && request.resource.data.companyName.size() > 0 && request.resource.data.companyName.size() <= 100
+        && request.resource.data.contactName is string && request.resource.data.contactName.size() > 0 && request.resource.data.contactName.size() <= 100
+        && request.resource.data.email is string && request.resource.data.email.size() > 0 && request.resource.data.email.size() <= 100 && request.resource.data.email.matches('^[^@]+@[^@]+\\.[^@]+$')
+        && request.resource.data.phone is string && request.resource.data.phone.size() > 0 && request.resource.data.phone.size() <= 30
+        && request.resource.data.tier is string && request.resource.data.tier.size() > 0 && request.resource.data.tier.size() <= 100
+        && request.resource.data.notes is string && request.resource.data.notes.size() <= 1000
+        && request.resource.data.createdAt == request.time;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // ── tickets ─────────────────────────────────────────────────────
+    match /tickets/{ticketId} {
+      allow read: if isAuthenticated()
+        && (resource == null || resource.data.uid == request.auth.uid || isManager());
+      allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid;
+      allow delete: if isAuthenticated() && resource.data.uid == request.auth.uid;
+    }
+
+    // ── settings ────────────────────────────────────────────────────
+    match /settings/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ── contact_messages ────────────────────────────────────────────
+    match /contact_messages/{msgId} {
+      allow create: if request.resource.data.keys().hasOnly(['name', 'email', 'subject', 'message', 'createdAt'])
+        && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 100
+        && request.resource.data.email is string && request.resource.data.email.size() > 0 && request.resource.data.email.size() <= 100 && request.resource.data.email.matches('^[^@]+@[^@]+\\.[^@]+$')
+        && request.resource.data.subject is string && request.resource.data.subject.size() > 0 && request.resource.data.subject.size() <= 100
+        && request.resource.data.message is string && request.resource.data.message.size() > 0 && request.resource.data.message.size() <= 2000
+        && request.resource.data.createdAt == request.time;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // ── reports ─────────────────────────────────────────────────────
+    match /reports/{reportId} {
+      allow create: if request.resource.data.keys().hasOnly(['title', 'description', 'type', 'email', 'createdAt'])
+        && request.resource.data.title is string && request.resource.data.title.size() > 0 && request.resource.data.title.size() <= 100
+        && request.resource.data.description is string && request.resource.data.description.size() > 0 && request.resource.data.description.size() <= 2000
+        && request.resource.data.type is string && request.resource.data.type.size() > 0 && request.resource.data.type.size() <= 50
+        && (!('email' in request.resource.data.keys()) || (request.resource.data.email is string && request.resource.data.email.size() <= 100 && request.resource.data.email.matches('^[^@]+@[^@]+\\.[^@]+$')))
+        && request.resource.data.createdAt == request.time;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // ── Deny everything else ────────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
