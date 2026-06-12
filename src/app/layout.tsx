@@ -26,6 +26,9 @@ export const metadata: Metadata = {
   description:
     'Join the most electrifying technology festival at SRM Institute of Science and Technology, Tiruchirappalli. Build, innovate, and compete in the Yuva Tech-Fest.',
   keywords: ['techfest', 'SRM IST', 'Tiruchirappalli', 'Yuva Tech-Fest', 'tech fest', 'coding competition', 'hackathon'],
+  icons: {
+    icon: '/favicon.png',
+  },
   openGraph: {
     title: 'Yuva Tech-Fest | SRM IST Tiruchirappalli',
     description: 'The most electrifying technology festival at SRM IST Trichy — Yuva Tech-Fest.',
