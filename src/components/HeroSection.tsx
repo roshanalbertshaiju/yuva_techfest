@@ -20,7 +20,7 @@ export default function HeroSection() {
     <Hero
       id="home"
       trustBadge={{
-        text: "SRM IST TIRUCHIRAPPALLI • 2025",
+        text: "SRM IST TIRUCHIRAPPALLI • 2026",
         icon: <GraduationCap size={14} className="text-[#ff7300] animate-pulse" />
       }}
       headline={{

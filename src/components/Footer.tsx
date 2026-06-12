@@ -23,7 +23,7 @@ export default function Footer() {
                 <p className="font-orbitron text-sm font-bold text-white">
                   YUVA <span className="text-[#ff7300]">TECH-FEST</span>
                 </p>
-                <p className="font-mono text-[9px] text-slate-500 tracking-widest">TECH-FEST 2025</p>
+                <p className="font-mono text-[9px] text-slate-500 tracking-widest">TECH-FEST 2026</p>
               </div>
             </div>
             <p className="text-slate-500 text-xs leading-relaxed max-w-xs">
@@ -88,7 +88,7 @@ export default function Footer() {
         {/* Bottom */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="font-mono text-[10px] text-slate-600 tracking-widest">
-            © 2025 YUVA TECH-FEST — SRM IST TIRUCHIRAPPALLI
+            © 2026 YUVA TECH-FEST — SRM IST TIRUCHIRAPPALLI
           </p>
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-[#ffb700] animate-pulse" style={{ boxShadow: '0 0 6px #ffb700' }} />

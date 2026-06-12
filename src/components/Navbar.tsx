@@ -81,7 +81,7 @@ export default function Navbar() {
               YUVA <span className="text-[#ff7300]">TECH-FEST</span>
             </p>
             <p className="font-mono text-[10px] text-slate-400 tracking-widest mt-0.5">
-              TECH-FEST 2025
+              TECH-FEST 2026
             </p>
           </div>
         </Link>
@@ -253,7 +253,7 @@ export default function Navbar() {
                     YUVA <span className="text-[#ff7300]">TECH-FEST</span>
                   </p>
                   <p className="font-mono text-[8px] text-slate-400 tracking-widest mt-0.5">
-                    TECH-FEST 2025
+                    TECH-FEST 2026
                   </p>
                 </div>
               </div>
