@@ -34,7 +34,8 @@ export default function RegistrationForm() {
     teamSize: '4',
     track: 'AI & Machine Learning',
     github: '',
-    linkedin: ''
+    linkedin: '',
+    food: 'none'
   })
 
   useEffect(() => {
@@ -206,18 +207,10 @@ export default function RegistrationForm() {
         uid: user.uid,
         eventId: selectedEvent,
         ...studentForm,
+        status: 'pending',
         createdAt: serverTimestamp(),
       })
 
-      await addDoc(collection(db, 'tickets'), {
-        uid: user.uid,
-        registrationId: regRef.id,
-        eventId: selectedEvent,
-        eventName: studentForm.track,
-        studentName: studentForm.name,
-        studentEmail: studentForm.email,
-        createdAt: serverTimestamp(),
-      })
       setStatus('success')
     } catch (error) {
       console.error('Error submitting form to Firebase:', error)
@@ -243,9 +236,9 @@ export default function RegistrationForm() {
             <div className="absolute inset-0 bg-[#ff7300]/10 blur-xl rounded-full" />
           </div>
           <div>
-            <h2 className="font-orbitron text-2xl font-bold text-white mb-2">Registration Confirmed!</h2>
+            <h2 className="font-orbitron text-2xl font-bold text-white mb-2">Registration Request Logged!</h2>
             <p className="text-slate-400 text-sm max-w-md mx-auto leading-relaxed">
-              You have been registered for Yuva Tech-Fest. You can coordinate with your team members to prepare for the events. We will see you at the campus!
+              Your registration request has been submitted and is pending coordinator review. Once approved, your entry ticket will be generated on your dashboard.
             </p>
           </div>
           <div className="flex gap-4 mt-4">
@@ -258,7 +251,7 @@ export default function RegistrationForm() {
             <button
               onClick={() => {
                 setStatus('idle')
-                setStudentForm({ name: '', email: '', college: '', year: '3', teamSize: '4', track: 'AI & Machine Learning', github: '', linkedin: '' })
+                setStudentForm({ name: '', email: '', college: '', year: '3', teamSize: '4', track: 'AI & Machine Learning', github: '', linkedin: '', food: 'none' })
               }}
               className="btn-outline px-6 py-3 text-xs"
             >
@@ -452,6 +445,20 @@ export default function RegistrationForm() {
                   />
                 </div>
               </div>
+            </div>
+
+            {/* Food Option Dropdown */}
+            <div className="relative">
+              <label className="block font-mono text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Food Option / Catering Preference</label>
+              <CustomSelect
+                value={studentForm.food}
+                onChange={(val) => setStudentForm(prev => ({ ...prev, food: val }))}
+                options={[
+                  { value: "none", label: "None / Self Catering" },
+                  { value: "veg", label: "Vegetarian Meals" },
+                  { value: "nonveg", label: "Non-Vegetarian Meals" }
+                ]}
+              />
             </div>
           </div>
 

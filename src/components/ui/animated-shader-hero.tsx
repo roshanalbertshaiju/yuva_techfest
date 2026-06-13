@@ -1,4 +1,5 @@
 import React, { useRef, useEffect } from 'react';
+import { ChevronDown } from 'lucide-react';
 
 // Types for component props
 interface HeroProps {
@@ -7,10 +8,17 @@ interface HeroProps {
     text: string;
     icon?: React.ReactNode;
   };
-  headline: {
+  headline?: {
     line1: string;
-    line2: string;
+    line2?: string;
   };
+  logo?: {
+    src: string;
+    alt: string;
+    width?: number;
+    height?: number;
+  };
+  tagline?: string;
   subtitle: string;
   buttons?: {
     primary?: {
@@ -472,6 +480,8 @@ const Hero: React.FC<HeroProps> = ({
   id,
   trustBadge,
   headline,
+  logo,
+  tagline,
   subtitle,
   buttons,
   className = "",
@@ -487,12 +497,17 @@ const Hero: React.FC<HeroProps> = ({
         style={{ background: 'black' }}
       />
       
+      {/* Cyber Grid & Glowing Radial Overlays */}
+      <div className="fixed inset-0 cyber-grid-bg opacity-25 pointer-events-none -z-10" />
+      <div className="fixed inset-0 bg-gradient-to-b from-transparent via-[#020408]/40 to-[#020408] pointer-events-none -z-10" />
+      <div className="fixed inset-0 bg-[radial-gradient(circle_at_center,rgba(255,115,0,0.12)_0%,transparent_65%)] pointer-events-none -z-10" />
+      
       {/* Hero Content Overlay */}
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen w-full text-white py-24 px-4">
         {/* Trust Badge */}
         {trustBadge && (
           <div className="mb-8 animate-fade-in-down">
-            <div className="flex items-center gap-2 px-5 py-2.5 bg-orange-500/5 backdrop-blur-md border border-orange-500/20 hover:border-orange-500/40 rounded-full text-[10px] md:text-xs font-mono tracking-widest text-orange-200/90 uppercase transition-colors duration-300">
+            <div className="flex items-center gap-2 px-5 py-2.5 bg-orange-500/10 backdrop-blur-md border border-orange-500/30 hover:border-orange-500/60 rounded-full text-[10px] md:text-xs font-mono tracking-widest text-orange-200/90 uppercase transition-all duration-300 shadow-[0_0_15px_rgba(255,115,0,0.05)] hover:shadow-[0_0_20px_rgba(255,115,0,0.15)] hover:scale-[1.02] cursor-default">
               {trustBadge.icon}
               <span>{trustBadge.text}</span>
             </div>
@@ -500,15 +515,37 @@ const Hero: React.FC<HeroProps> = ({
         )}
 
         <div className="text-center space-y-6 max-w-5xl mx-auto px-4 flex flex-col items-center">
-          {/* Main Heading with Animation */}
-          <div className="space-y-2">
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold bg-gradient-to-r from-orange-300 via-yellow-400 to-amber-300 bg-clip-text text-transparent animate-fade-in-up animation-delay-200">
-              {headline.line1}
-            </h1>
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold bg-gradient-to-r from-yellow-300 via-orange-400 to-red-400 bg-clip-text text-transparent animate-fade-in-up animation-delay-400">
-              {headline.line2}
-            </h1>
-          </div>
+          {/* Main Heading or Logo with Animation */}
+          {logo ? (
+            <div className="animate-fade-in-up animation-delay-200 flex justify-center -my-24 md:-my-[144px] lg:-my-[192px] select-none">
+              <div className="animate-float pointer-events-auto">
+                <img 
+                  src={logo.src} 
+                  alt={logo.alt} 
+                  className="h-96 md:h-[576px] lg:h-[640px] w-auto object-contain cursor-pointer transition-all duration-500 hover:scale-[1.04] drop-shadow-[0_0_45px_rgba(255,115,0,0.4)] hover:drop-shadow-[0_0_65px_rgba(255,115,0,0.65)]" 
+                />
+              </div>
+            </div>
+          ) : (
+            headline && (
+              <div className="space-y-2">
+                <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold bg-gradient-to-r from-orange-300 via-yellow-400 to-amber-300 bg-clip-text text-transparent animate-fade-in-up animation-delay-200">
+                  {headline.line1}
+                </h1>
+                {headline.line2 && (
+                  <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold bg-gradient-to-r from-yellow-300 via-orange-400 to-red-400 bg-clip-text text-transparent animate-fade-in-up animation-delay-400">
+                    {headline.line2}
+                  </h1>
+                )}
+              </div>
+            )
+          )}
+          {/* Tagline */}
+          {tagline && (
+            <div className="animate-fade-in-up animation-delay-400 font-orbitron text-orange-500 tracking-[0.25em] text-xs sm:text-sm md:text-base font-semibold uppercase mt-4 select-none drop-shadow-[0_0_10px_rgba(255,115,0,0.35)]">
+              {tagline}
+            </div>
+          )}
           
           {/* Subtitle with Animation */}
           <div className="max-w-3xl mx-auto animate-fade-in-up animation-delay-600">
@@ -523,7 +560,7 @@ const Hero: React.FC<HeroProps> = ({
               {buttons.primary && (
                 <button 
                   onClick={buttons.primary.onClick}
-                  className="px-8 py-4 bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 text-black rounded-full font-semibold text-lg transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-orange-500/25"
+                  className="px-8 py-4 bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 text-black rounded-full font-bold text-lg font-orbitron tracking-wider transition-all duration-300 hover:scale-105 hover:shadow-[0_0_30px_rgba(255,115,0,0.6)] border border-orange-400/20"
                 >
                   {buttons.primary.text}
                 </button>
@@ -531,7 +568,7 @@ const Hero: React.FC<HeroProps> = ({
               {buttons.secondary && (
                 <button 
                   onClick={buttons.secondary.onClick}
-                  className="px-8 py-4 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-300/30 hover:border-orange-300/50 text-orange-100 rounded-full font-semibold text-lg transition-all duration-300 hover:scale-105 backdrop-blur-sm"
+                  className="px-8 py-4 bg-orange-500/5 hover:bg-orange-500/15 border border-orange-500/30 hover:border-orange-500/60 text-orange-200 rounded-full font-bold text-lg font-orbitron tracking-wider transition-all duration-300 hover:scale-105 backdrop-blur-md hover:shadow-[0_0_20px_rgba(255,115,0,0.2)]"
                 >
                   {buttons.secondary.text}
                 </button>
@@ -547,8 +584,23 @@ const Hero: React.FC<HeroProps> = ({
           )}
         </div>
       </div>
+      
+      {/* Scroll Cue / Indicator */}
+      <div 
+        className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex flex-col items-center gap-2 cursor-pointer opacity-50 hover:opacity-100 transition-opacity duration-300 animate-fade-in-up animation-delay-1000"
+        onClick={() => {
+          window.scrollTo({
+            top: window.innerHeight,
+            behavior: 'smooth'
+          });
+        }}
+      >
+        <span className="text-[10px] font-mono tracking-widest text-orange-300/80 uppercase">Scroll to explore</span>
+        <ChevronDown className="w-5 h-5 text-orange-500 animate-bounce" />
+      </div>
     </div>
   );
 };
+
 
 export default Hero;

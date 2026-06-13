@@ -32,7 +32,7 @@ service cloud.firestore {
     // Users can read their own doc; admins/superAdmins can read all
     // Only superAdmin can write isAdmin or isSuperAdmin fields
     match /users/{userId} {
-      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isManager());
 
       // New user creates their own doc — isAdmin, isSuperAdmin & isManager must be false
       allow create: if isAuthenticated()
@@ -80,12 +80,18 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // ── sponsors ─────────────────────────────────────────────────────
+    match /sponsors/{sponsorId} {
+      allow read: if true;
+      allow write: if isManager();
+    }
+
     match /registrations/{regId} {
       allow read: if isAuthenticated()
         && (resource == null || resource.data.uid == request.auth.uid || isManager());
       allow create: if isAuthenticated()
         && request.resource.data.uid == request.auth.uid
-        && request.resource.data.keys().hasOnly(['type', 'uid', 'name', 'email', 'college', 'year', 'teamSize', 'track', 'github', 'linkedin', 'createdAt', 'eventId'])
+        && request.resource.data.keys().hasOnly(['type', 'uid', 'name', 'email', 'college', 'year', 'teamSize', 'track', 'github', 'linkedin', 'createdAt', 'eventId', 'status', 'food'])
         && request.resource.data.type == 'student'
         && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 100
         && request.resource.data.email is string && request.resource.data.email.size() > 0 && request.resource.data.email.size() <= 100 && request.resource.data.email.matches('^[^@]+@[^@]+\\.[^@]+$')
@@ -96,6 +102,8 @@ service cloud.firestore {
         && request.resource.data.github is string && request.resource.data.github.size() <= 200
         && request.resource.data.linkedin is string && request.resource.data.linkedin.size() <= 200
         && request.resource.data.eventId is string && request.resource.data.eventId.size() > 0 && request.resource.data.eventId.size() <= 50
+        && (!('status' in request.resource.data.keys()) || request.resource.data.status == 'pending')
+        && (!('food' in request.resource.data.keys()) || (request.resource.data.food is string && request.resource.data.food in ['veg', 'nonveg', 'none']))
         && request.resource.data.createdAt == request.time;
       allow delete: if isAuthenticated()
         && resource.data.uid == request.auth.uid;
@@ -120,8 +128,8 @@ service cloud.firestore {
     match /tickets/{ticketId} {
       allow read: if isAuthenticated()
         && (resource == null || resource.data.uid == request.auth.uid || isManager());
-      allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid;
-      allow delete: if isAuthenticated() && resource.data.uid == request.auth.uid;
+      allow create, update: if isAuthenticated() && (request.resource.data.uid == request.auth.uid || isManager());
+      allow delete: if isAuthenticated() && (isManager() || resource == null || resource.data.uid == request.auth.uid);
     }
 
     // ── settings ────────────────────────────────────────────────────
@@ -138,7 +146,8 @@ service cloud.firestore {
         && request.resource.data.subject is string && request.resource.data.subject.size() > 0 && request.resource.data.subject.size() <= 100
         && request.resource.data.message is string && request.resource.data.message.size() > 0 && request.resource.data.message.size() <= 2000
         && request.resource.data.createdAt == request.time;
-      allow read, update, delete: if isAdmin();
+      allow read: if isManager();
+      allow update, delete: if isAdmin();
     }
 
     // ── reports ─────────────────────────────────────────────────────

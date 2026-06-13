@@ -423,12 +423,44 @@ export async function seedSettingsIfEmpty() {
   }
 }
 
+export const defaultSponsors = [
+  { id: 'spon-1', name: 'SRM Technologies', description: 'Driving Innovation & Digital Solutions', logoName: 'srm', tier: 'title', order: 1 },
+  { id: 'spon-2', name: 'DevFolio', description: 'Empowering Builders Worldwide', logoName: 'devfolio', tier: 'platinum', order: 2 },
+  { id: 'spon-3', name: 'Solana Foundation', description: 'Decentralized High-Speed Blockchain', logoName: 'solana', tier: 'platinum', order: 3 },
+  { id: 'spon-4', name: 'Polygon', description: 'Scaling Ethereum Infrastructure', logoName: 'polygon', tier: 'gold', order: 4 },
+  { id: 'spon-5', name: 'Filecoin', description: 'Decentralized Storage Network', logoName: 'filecoin', tier: 'gold', order: 5 },
+  { id: 'spon-6', name: 'Auth0', description: 'Secure Identity Platform', logoName: 'auth0', tier: 'gold', order: 6 }
+]
+
+export async function seedSponsorsIfEmpty() {
+  try {
+    const querySnapshot = await getDocs(collection(db, 'sponsors'))
+    const existingIds = new Set(querySnapshot.docs.map(d => d.id))
+
+    let seededAny = false
+    for (const spon of defaultSponsors) {
+      if (!existingIds.has(spon.id)) {
+        console.log(`Seeding sponsor: ${spon.id}`)
+        await setDoc(doc(db, 'sponsors', spon.id), spon)
+        seededAny = true
+      }
+    }
+
+    if (seededAny) console.log('Default sponsors seeded successfully.')
+    return seededAny
+  } catch (error) {
+    console.error('Error seeding sponsors:', error)
+    return false
+  }
+}
+
 export async function seedAllIfEmpty() {
   const results = await Promise.all([
     seedEventsIfEmpty(),
     seedFaqsIfEmpty(),
     seedTeamIfEmpty(),
     seedSettingsIfEmpty(),
+    seedSponsorsIfEmpty(),
   ])
   return results.some(Boolean)
 }

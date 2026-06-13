@@ -20,6 +20,7 @@ interface Ticket {
   eventName: string
   studentName: string
   studentEmail: string
+  food?: string
   createdAt?: any
 }
 
@@ -110,12 +111,25 @@ export default function TicketsClient() {
           fetchedRegs.push({ id: doc.id, ...doc.data() })
         })
 
+        // Filter out tickets whose corresponding registrations are not approved
+        const verifiedTickets = fetchedTickets.filter((ticket) => {
+          const correspondingReg = fetchedRegs.find(
+            (r) => r.id === ticket.registrationId || r.eventId === ticket.eventId || r.track === ticket.eventName
+          )
+          if (correspondingReg) {
+            return correspondingReg.status === undefined || correspondingReg.status === 'accepted'
+          }
+          return false
+        })
+
         // Combine and resolve
-        const resolvedTickets: Ticket[] = [...fetchedTickets]
+        const resolvedTickets: Ticket[] = [...verifiedTickets]
         
         // Add dynamic tickets for registrations that don't have a ticket doc yet
         fetchedRegs.forEach((reg) => {
-          const hasTicket = fetchedTickets.some(
+          if (reg.status !== undefined && reg.status !== 'accepted') return
+
+          const hasTicket = verifiedTickets.some(
             (t) => t.registrationId === reg.id || t.eventId === reg.eventId || t.eventName === reg.track
           )
           if (!hasTicket) {
@@ -128,19 +142,30 @@ export default function TicketsClient() {
               eventName: reg.track || 'Yuva Tech-Fest Event',
               studentName: reg.name,
               studentEmail: reg.email,
+              food: reg.food || 'none',
               createdAt: reg.createdAt
             })
           }
         })
 
+        // De-duplicate resolved tickets by eventId to ensure one ticket per event
+        const finalTickets: Ticket[] = []
+        const seenEvents = new Set<string>()
+        resolvedTickets.forEach((ticket) => {
+          if (!seenEvents.has(ticket.eventId)) {
+            seenEvents.add(ticket.eventId)
+            finalTickets.push(ticket)
+          }
+        })
+
         // Sort in memory by createdAt descending
-        resolvedTickets.sort((a, b) => {
+        finalTickets.sort((a, b) => {
           const timeA = a.createdAt?.seconds || (a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0)
           const timeB = b.createdAt?.seconds || (b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0)
           return timeB - timeA
         })
 
-        setTickets(resolvedTickets)
+        setTickets(finalTickets)
       } catch (err) {
         console.error('Error fetching ticket data:', err)
       } finally {
@@ -335,7 +360,7 @@ export default function TicketsClient() {
       <AnimatePresence>
         {selectedTicket && (() => {
           const details = getEventDetails(selectedTicket)
-          const qrPayload = `Yuva Tech-Fest 2026 Ticket\nID: ${selectedTicket.id}\nEvent: ${details.title}\nAttendee: ${selectedTicket.studentName}\nEmail: ${selectedTicket.studentEmail}\nStatus: VERIFIED PASS`
+          const qrPayload = `Yuva Tech-Fest 2026 Ticket\nID: ${selectedTicket.id}\nEvent: ${details.title}\nAttendee: ${selectedTicket.studentName}\nEmail: ${selectedTicket.studentEmail}\nFood: ${selectedTicket.food || 'none'}\nStatus: VERIFIED PASS`
           const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrPayload)}`
 
           return (
@@ -406,6 +431,10 @@ export default function TicketsClient() {
                     <div className="flex justify-between">
                       <span className="text-slate-550 uppercase text-[9px] tracking-wider">VENUE</span>
                       <span className="font-bold text-white print:text-black truncate">{details.venue}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-550 uppercase text-[9px] tracking-wider">FOOD CHOICE</span>
+                      <span className="font-bold text-white print:text-black uppercase">{selectedTicket.food || 'none'}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-slate-550 uppercase text-[9px] tracking-wider">SERIAL KEY</span>

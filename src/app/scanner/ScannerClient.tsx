@@ -15,6 +15,7 @@ interface Attendee {
   email: string
   college: string
   track: string
+  food?: string
   checkedIn?: boolean
   eventId?: string
 }
@@ -163,6 +164,9 @@ export default function ScannerClient() {
       }
 
       const regData = regSnap.data()
+      if (regData.status !== undefined && regData.status !== 'accepted') {
+        throw new Error(`Registration is not approved (Current status: "${regData.status?.toUpperCase()}"). Only accepted registrants can check-in.`)
+      }
       studentName = studentName || regData.name || 'Student'
       eventTitle = eventTitle || regData.track || 'Yuva Tech-Fest Event'
 
@@ -440,6 +444,7 @@ export default function ScannerClient() {
                         <th className="p-4">Attendee</th>
                         <th className="p-4">College</th>
                         <th className="p-4">Track / Event</th>
+                        <th className="p-4 text-center">Food</th>
                         <th className="p-4 text-center">Status</th>
                         <th className="p-4 text-center">Action</th>
                       </tr>
@@ -458,6 +463,17 @@ export default function ScannerClient() {
                               <span className="px-2 py-0.5 rounded border border-orange-500/20 bg-orange-500/5 text-orange-400 text-[9px]">
                                 {attendee.track}
                               </span>
+                            </td>
+                            <td className="p-4 text-center font-mono text-[10px] font-semibold">
+                              {attendee.food === 'veg' && (
+                                <span className="text-emerald-400 uppercase">VEG</span>
+                              )}
+                              {attendee.food === 'nonveg' && (
+                                <span className="text-rose-400 uppercase">NON-VEG</span>
+                              )}
+                              {(!attendee.food || attendee.food === 'none') && (
+                                <span className="text-slate-500 uppercase">NONE</span>
+                              )}
                             </td>
                             <td className="p-4 text-center">
                               {attendee.checkedIn ? (
@@ -486,7 +502,7 @@ export default function ScannerClient() {
                         ))
                       ) : (
                         <tr>
-                          <td colSpan={5} className="p-8 text-center text-slate-600 text-[10px]">
+                          <td colSpan={6} className="p-8 text-center text-slate-600 text-[10px]">
                             {"// NO RECORDS SCANNING QUERY: \"" + searchQuery + "\""}
                           </td>
                         </tr>

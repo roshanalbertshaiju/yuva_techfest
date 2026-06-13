@@ -23,10 +23,11 @@ export default function HeroSection() {
         text: "SRM IST TIRUCHIRAPPALLI • 2026",
         icon: <GraduationCap size={14} className="text-[#ff7300] animate-pulse" />
       }}
-      headline={{
-        line1: "YUVA TECH-FEST",
-        line2: "HACKATHON"
+      logo={{
+        src: "/hero-logo.png",
+        alt: "Yuva Tech-Fest Logo"
       }}
+      tagline="National Level Techno-Management Fest"
       subtitle="Push the boundaries of innovation at SRM Institute of Science & Technology, Tiruchirappalli. Build something extraordinary. Win something legendary."
       buttons={{
         primary: {

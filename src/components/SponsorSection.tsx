@@ -58,37 +58,74 @@ const SrmLogo = () => (
   </svg>
 )
 
-const sponsorTiers = [
-  {
-    tier: 'Title Sponsor',
-    cardClass: 'border-amber-500/30 bg-gradient-to-b from-amber-500/5 to-transparent shadow-[0_0_30px_rgba(245,158,11,0.05)] hover:border-amber-500/60',
-    textClass: 'text-amber-500 font-bold tracking-[0.2em]',
-    sponsors: [
-      { name: 'SRM Technologies', description: 'Driving Innovation & Digital Solutions', icon: <SrmLogo /> }
-    ]
-  },
-  {
-    tier: 'Platinum Partners',
-    cardClass: 'border-slate-300/20 bg-gradient-to-b from-slate-300/5 to-transparent hover:border-slate-300/40',
-    textClass: 'text-slate-300 font-semibold tracking-[0.15em]',
-    sponsors: [
-      { name: 'DevFolio', description: 'Empowering Builders Worldwide', icon: <DevfolioLogo /> },
-      { name: 'Solana Foundation', description: 'Decentralized High-Speed Blockchain', icon: <SolanaLogo /> }
-    ]
-  },
-  {
-    tier: 'Gold Partners',
-    cardClass: 'border-amber-700/20 bg-gradient-to-b from-amber-700/5 to-transparent hover:border-amber-700/40',
-    textClass: 'text-amber-500 font-medium tracking-[0.1em]',
-    sponsors: [
-      { name: 'Polygon', description: 'Scaling Ethereum Infrastructure', icon: <PolygonLogo /> },
-      { name: 'Filecoin', description: 'Decentralized Storage Network', icon: <FilecoinLogo /> },
-      { name: 'Auth0', description: 'Secure Identity Platform', icon: <Auth0Logo /> }
-    ]
+import { useState, useEffect } from 'react'
+import { collection, getDocs, query, orderBy } from 'firebase/firestore'
+import { db } from '@/lib/firebase'
+
+const getSponsorIcon = (logoName: string) => {
+  switch (logoName?.toLowerCase()) {
+    case 'srm': return <SrmLogo />
+    case 'devfolio': return <DevfolioLogo />
+    case 'solana': return <SolanaLogo />
+    case 'polygon': return <PolygonLogo />
+    case 'filecoin': return <FilecoinLogo />
+    case 'auth0': return <Auth0Logo />
+    default: return <Cpu className="w-10 h-10 text-orange-500" />
   }
+}
+
+const defaultSponsorsList = [
+  { id: 'spon-1', name: 'SRM Technologies', description: 'Driving Innovation & Digital Solutions', logoName: 'srm', tier: 'title', order: 1 },
+  { id: 'spon-2', name: 'DevFolio', description: 'Empowering Builders Worldwide', logoName: 'devfolio', tier: 'platinum', order: 2 },
+  { id: 'spon-3', name: 'Solana Foundation', description: 'Decentralized High-Speed Blockchain', logoName: 'solana', tier: 'platinum', order: 3 },
+  { id: 'spon-4', name: 'Polygon', description: 'Scaling Ethereum Infrastructure', logoName: 'polygon', tier: 'gold', order: 4 },
+  { id: 'spon-5', name: 'Filecoin', description: 'Decentralized Storage Network', logoName: 'filecoin', tier: 'gold', order: 5 },
+  { id: 'spon-6', name: 'Auth0', description: 'Secure Identity Platform', logoName: 'auth0', tier: 'gold', order: 6 }
 ]
 
 export default function SponsorSection() {
+  const [sponsors, setSponsors] = useState<any[]>(defaultSponsorsList)
+
+  useEffect(() => {
+    const fetchSponsors = async () => {
+      try {
+        const snap = await getDocs(query(collection(db, 'sponsors'), orderBy('order', 'asc')))
+        if (!snap.empty) {
+          const list = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+          setSponsors(list)
+        }
+      } catch (error) {
+        console.error('Error fetching sponsors:', error)
+      }
+    }
+    fetchSponsors()
+  }, [])
+
+  const titleSponsors = sponsors.filter(s => s.tier === 'title')
+  const platinumSponsors = sponsors.filter(s => s.tier === 'platinum')
+  const goldSponsors = sponsors.filter(s => s.tier === 'gold')
+
+  const sponsorTiers = [
+    {
+      tier: 'Title Sponsor',
+      cardClass: 'border-amber-500/30 bg-gradient-to-b from-amber-500/5 to-transparent shadow-[0_0_30px_rgba(245,158,11,0.05)] hover:border-amber-500/60',
+      textClass: 'text-amber-500 font-bold tracking-[0.2em]',
+      sponsors: titleSponsors
+    },
+    {
+      tier: 'Platinum Partners',
+      cardClass: 'border-slate-300/20 bg-gradient-to-b from-slate-300/5 to-transparent hover:border-slate-300/40',
+      textClass: 'text-slate-300 font-semibold tracking-[0.15em]',
+      sponsors: platinumSponsors
+    },
+    {
+      tier: 'Gold Partners',
+      cardClass: 'border-amber-700/20 bg-gradient-to-b from-amber-700/5 to-transparent hover:border-amber-700/40',
+      textClass: 'text-amber-500 font-medium tracking-[0.1em]',
+      sponsors: goldSponsors
+    }
+  ].filter(t => t.sponsors.length > 0)
+
   return (
     <section id="sponsors" className="relative py-28 bg-[#020408]/90 backdrop-blur-[4px] overflow-hidden border-t border-[rgba(255,115,0,0.05)]">
       <CyberParticles />
@@ -134,7 +171,7 @@ export default function SponsorSection() {
                     transition={{ duration: 0.6, delay: sIdx * 0.1 }}
                   >
                     <div className="p-4 rounded-xl bg-white/5 border border-slate-800/50 mb-4 transition-all duration-300 group-hover:scale-105">
-                      {sponsor.icon}
+                      {getSponsorIcon(sponsor.logoName)}
                     </div>
                     <h4 className="font-orbitron text-sm font-bold text-white mb-1">
                       {sponsor.name}

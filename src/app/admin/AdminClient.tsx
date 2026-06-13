@@ -7,10 +7,12 @@ import {
   ShieldAlert, ShieldCheck, Search, RefreshCw, FileText, 
   Users, Briefcase, ExternalLink, Calendar, MapPin, Loader2, ArrowLeft,
   Plus, Edit, Trash2, X, PlusCircle, CheckSquare, Settings, Play,
-  HelpCircle, UserCircle, BarChart3, Clock, Database, Mail
+  HelpCircle, UserCircle, BarChart3, Clock, Database, Mail,
+  Terminal, Rocket, Bot, Sparkles, Check, CheckCircle2, XCircle,
+  ChevronDown, ChevronUp, Award
 } from 'lucide-react'
 import { 
-  collection, query, orderBy, getDocs, doc, setDoc, deleteDoc, getDoc
+  collection, query, orderBy, getDocs, doc, setDoc, deleteDoc, getDoc, serverTimestamp
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { useAuth } from '@/context/AuthContext'
@@ -22,6 +24,7 @@ import { seedAllIfEmpty, defaultFaqs, defaultTeam, defaultSettings } from '@/lib
 
 interface Registration {
   id: string
+  uid: string
   name: string
   email: string
   college: string
@@ -30,8 +33,10 @@ interface Registration {
   track: string
   github: string
   linkedin: string
+  food?: string
   eventId?: string
   checkedIn?: boolean
+  status?: 'pending' | 'accepted' | 'declined'
   createdAt?: any
 }
 
@@ -97,6 +102,15 @@ interface TeamMember {
   order: number
 }
 
+interface Sponsor {
+  id: string
+  name: string
+  description: string
+  logoName: string
+  tier: string
+  order: number
+}
+
 interface UserDoc {
   id: string
   name: string
@@ -157,9 +171,18 @@ const emptyMember: TeamMember = {
   order: 0,
 }
 
+const emptySponsor: Sponsor = {
+  id: '',
+  name: '',
+  description: '',
+  logoName: 'srm',
+  tier: 'gold',
+  order: 0,
+}
+
 // ─── Tab Type ──────────────────────────────────────────────────────────────────
 
-type AdminTab = 'registrations' | 'contacts' | 'attendance' | 'events' | 'faqs' | 'team' | 'settings'
+type AdminTab = 'registrations' | 'contacts' | 'attendance' | 'events' | 'faqs' | 'team' | 'settings' | 'sponsors'
 
 // ─── Helper Components ─────────────────────────────────────────────────────────
 
@@ -229,10 +252,22 @@ export default function AdminClient() {
   const [eventsList, setEventsList] = useState<EventData[]>([])
   const [faqs, setFaqs] = useState<FAQ[]>([])
   const [team, setTeam] = useState<TeamMember[]>([])
+  const [sponsorsList, setSponsorsList] = useState<Sponsor[]>([])
+  const [isSponsorModalOpen, setIsSponsorModalOpen] = useState(false)
+  const [editingSponsor, setEditingSponsor] = useState<Sponsor | null>(null)
+  const [sponsorForm, setSponsorForm] = useState<Sponsor>(emptySponsor)
+  const [savingSponsor, setSavingSponsor] = useState(false)
   const [usersList, setUsersList] = useState<UserDoc[]>([])
   const [updatingUserRole, setUpdatingUserRole] = useState<string | null>(null)
   const [isElevateModalOpen, setIsElevateModalOpen] = useState(false)
   const [elevateSearch, setElevateSearch] = useState('')
+  const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({
+    hackathon: true,
+    ctf: true,
+    dronerace: true,
+    robowars: true,
+    workshop: true,
+  })
   const [stats, setStats] = useState<StatItem[]>(defaultSettings.stats)
   const [countdown, setCountdown] = useState<CountdownConfig>(defaultSettings.countdown)
 
@@ -249,6 +284,19 @@ export default function AdminClient() {
     return 'hackathon'
   }
 
+  const getEventIcon = (name: string, size = 16) => {
+    switch (name) {
+      case 'Terminal': return <Terminal size={size} />
+      case 'ShieldAlert': return <ShieldAlert size={size} />
+      case 'Rocket': return <Rocket size={size} />
+      case 'Bot': return <Bot size={size} />
+      case 'Sparkles': return <Sparkles size={size} />
+      case 'Clock': return <Clock size={size} />
+      case 'Calendar': return <Calendar size={size} />
+      default: return <HelpCircle size={size} />
+    }
+  }
+
   const handleToggleAttendance = async (regId: string, currentStatus: boolean) => {
     try {
       const regRef = doc(db, 'registrations', regId)
@@ -256,6 +304,55 @@ export default function AdminClient() {
       setRegistrations(prev => prev.map(r => r.id === regId ? { ...r, checkedIn: !currentStatus } : r))
     } catch (err) {
       console.error('Error toggling attendance:', err)
+    }
+  }
+
+  const handleAcceptRegistration = async (reg: Registration) => {
+    try {
+      // 1. Update registration status to accepted
+      const regRef = doc(db, 'registrations', reg.id)
+      await setDoc(regRef, { status: 'accepted' }, { merge: true })
+
+      // 2. Create corresponding ticket
+      const ticketRef = doc(db, 'tickets', reg.id)
+      await setDoc(ticketRef, {
+        uid: reg.uid,
+        registrationId: reg.id,
+        eventId: reg.eventId || mapTrackToEventId(reg.track),
+        eventName: reg.track || 'Event',
+        studentName: reg.name,
+        studentEmail: reg.email,
+        food: reg.food || 'none',
+        createdAt: serverTimestamp(),
+      })
+
+      // 3. Update state
+      setRegistrations(prev => prev.map(r => r.id === reg.id ? { ...r, status: 'accepted' } : r))
+    } catch (err) {
+      console.error('Error accepting registration:', err)
+      alert('Failed to accept registration.')
+    }
+  }
+
+  const handleDeclineRegistration = async (reg: Registration) => {
+    try {
+      // 1. Update registration status to declined
+      const regRef = doc(db, 'registrations', reg.id)
+      await setDoc(regRef, { status: 'declined' }, { merge: true })
+
+      // 2. Delete corresponding ticket if exists
+      try {
+        const ticketRef = doc(db, 'tickets', reg.id)
+        await deleteDoc(ticketRef)
+      } catch (ticketErr) {
+        console.warn('Corresponding ticket deletion skipped (may not exist):', ticketErr)
+      }
+
+      // 3. Update state
+      setRegistrations(prev => prev.map(r => r.id === reg.id ? { ...r, status: 'declined' } : r))
+    } catch (err) {
+      console.error('Error declining registration:', err)
+      alert('Failed to decline registration.')
     }
   }
 
@@ -286,7 +383,7 @@ export default function AdminClient() {
   const fetchData = async () => {
     setFetching(true)
     try {
-      const [regsSnap, contactsSnap, eventsSnap, faqsSnap, teamSnap, countdownSnap, statsSnap, usersSnap] = await Promise.all([
+      const [regsSnap, contactsSnap, eventsSnap, faqsSnap, teamSnap, countdownSnap, statsSnap, usersSnap, sponsorsSnap] = await Promise.all([
         getDocs(query(collection(db, 'registrations'), orderBy('createdAt', 'desc'))),
         getDocs(query(collection(db, 'contact_messages'), orderBy('createdAt', 'desc'))),
         getDocs(collection(db, 'events')),
@@ -295,6 +392,7 @@ export default function AdminClient() {
         getDoc(doc(db, 'settings', 'countdown')),
         getDoc(doc(db, 'settings', 'stats')),
         getDocs(collection(db, 'users')),
+        getDocs(query(collection(db, 'sponsors'), orderBy('order', 'asc'))),
       ])
 
       setRegistrations(regsSnap.docs.map(d => ({ id: d.id, ...d.data() })) as Registration[])
@@ -302,6 +400,7 @@ export default function AdminClient() {
       setEventsList(eventsSnap.docs.map(d => ({ id: d.id, ...d.data() })) as EventData[])
       setFaqs(faqsSnap.docs.map(d => ({ id: d.id, ...d.data() })) as FAQ[])
       setTeam(teamSnap.docs.map(d => ({ id: d.id, ...d.data() })) as TeamMember[])
+      setSponsorsList(sponsorsSnap.docs.map(d => ({ id: d.id, ...d.data() })) as Sponsor[])
       setUsersList(usersSnap.docs.map(d => ({ id: d.id, ...d.data() })) as UserDoc[])
       if (countdownSnap.exists()) setCountdown(countdownSnap.data() as CountdownConfig)
       if (statsSnap.exists() && statsSnap.data().items) setStats(statsSnap.data().items as StatItem[])
@@ -313,7 +412,7 @@ export default function AdminClient() {
   }
 
   useEffect(() => {
-    if (user && profile?.isAdmin) {
+    if (user && (profile?.isAdmin || profile?.isManager)) {
       fetchData()
     }
   }, [user, profile])
@@ -538,6 +637,50 @@ export default function AdminClient() {
     }
   }
 
+  // ─── Sponsors CRUD ────────────────────────────────────────────────────────────
+
+  const openAddSponsorModal = () => {
+    setEditingSponsor(null)
+    setSponsorForm({ ...emptySponsor, order: sponsorsList.length + 1 })
+    setIsSponsorModalOpen(true)
+  }
+
+  const openEditSponsorModal = (sponsor: Sponsor) => {
+    setEditingSponsor(sponsor)
+    setSponsorForm({ ...sponsor })
+    setIsSponsorModalOpen(true)
+  }
+
+  const handleSaveSponsor = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!sponsorForm.id) { alert('Please provide a unique Sponsor ID.'); return }
+    setSavingSponsor(true)
+    try {
+      await setDoc(doc(db, 'sponsors', sponsorForm.id.trim()), { ...sponsorForm, id: sponsorForm.id.trim() })
+      setIsSponsorModalOpen(false)
+      await fetchData()
+    } catch (error) {
+      alert('Error saving sponsor.')
+      console.error(error)
+    } finally {
+      setSavingSponsor(false)
+    }
+  }
+
+  const handleDeleteSponsor = async (id: string) => {
+    if (!confirm('Delete this sponsor?')) return
+    try {
+      setFetching(true)
+      await deleteDoc(doc(db, 'sponsors', id))
+      await fetchData()
+    } catch (error) {
+      alert('Failed to delete sponsor.')
+      console.error(error)
+    } finally {
+      setFetching(false)
+    }
+  }
+
   const handleToggleUserRole = async (userId: string, roleKey: 'isAdmin' | 'isManager', currentStatus: boolean) => {
     if (userId === user?.uid && roleKey === 'isAdmin') {
       alert('Security Protocol: You cannot revoke admin access from your own account.')
@@ -645,6 +788,12 @@ export default function AdminClient() {
     (m.role?.toLowerCase() || '').includes(search.toLowerCase())
   )
 
+  const filteredSponsors = sponsorsList.filter(s =>
+    (s.name?.toLowerCase() || '').includes(search.toLowerCase()) ||
+    (s.tier?.toLowerCase() || '').includes(search.toLowerCase()) ||
+    (s.description?.toLowerCase() || '').includes(search.toLowerCase())
+  )
+
   const filteredUsers = usersList.filter(u => {
     const isAlreadyRole = u.isAdmin || u.isManager
     const matchesSearch = 
@@ -669,7 +818,7 @@ export default function AdminClient() {
     )
   }
 
-  if (!user || !profile?.isAdmin) {
+  if (!user || !(profile?.isAdmin || profile?.isManager)) {
     return (
       <main className="min-h-screen bg-[#020408] flex flex-col justify-between pt-24 relative overflow-hidden">
         <div className="scan-line" />
@@ -727,6 +876,7 @@ export default function AdminClient() {
     { key: 'events', label: 'EVENTS', icon: <Calendar size={14} />, count: eventsList.length },
     { key: 'faqs', label: 'FAQs', icon: <HelpCircle size={14} />, count: faqs.length },
     { key: 'team', label: 'TEAM', icon: <UserCircle size={14} />, count: team.length },
+    { key: 'sponsors', label: 'SPONSORS', icon: <Award size={14} />, count: sponsorsList.length },
     { key: 'settings', label: 'SETTINGS', icon: <Settings size={14} /> },
   ]
 
@@ -834,61 +984,202 @@ export default function AdminClient() {
         <div className="glass-card corner-bracket rounded-2xl border border-slate-900 bg-[#04070d]/20 overflow-hidden min-h-[400px]">
 
           {/* ── Registrations Tab ─────────────────────────────────────────────── */}
-          {activeTab === 'registrations' && (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs font-light">
-                <thead>
-                  <tr className="border-b border-slate-900 font-mono text-[10px] text-slate-500 tracking-wider bg-black/40 uppercase">
-                    <th className="p-4">Name</th>
-                    <th className="p-4">Email</th>
-                    <th className="p-4">College</th>
-                    <th className="p-4 text-center">Yr</th>
-                    <th className="p-4 text-center">Size</th>
-                    <th className="p-4">Event Track</th>
-                    <th className="p-4 text-center">Links</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-900/60">
-                  {filteredRegs.length > 0 ? (
-                    filteredRegs.map(reg => (
-                      <tr key={reg.id} className="hover:bg-slate-900/20 transition-colors">
-                        <td className="p-4 font-bold text-white">{reg.name}</td>
-                        <td className="p-4 font-mono text-[11px] text-slate-400">{reg.email}</td>
-                        <td className="p-4 text-slate-300">{reg.college}</td>
-                        <td className="p-4 text-center text-slate-300 font-mono">{reg.year}</td>
-                        <td className="p-4 text-center font-mono font-semibold text-[#ff7300]">{reg.teamSize}</td>
-                        <td className="p-4">
-                          <span className="px-2.5 py-0.5 rounded-full border border-orange-500/20 bg-orange-500/5 text-orange-400 font-mono text-[10px]">
-                            {reg.track}
-                          </span>
-                        </td>
-                        <td className="p-4">
-                          <div className="flex gap-2 justify-center text-slate-500">
-                            {reg.github && (
-                              <a href={reg.github.startsWith('http') ? reg.github : `https://${reg.github}`} target="_blank" rel="noreferrer" className="hover:text-white" title="GitHub">
-                                <ExternalLink size={14} />
-                              </a>
-                            )}
-                            {reg.linkedin && (
-                              <a href={reg.linkedin.startsWith('http') ? reg.linkedin : `https://${reg.linkedin}`} target="_blank" rel="noreferrer" className="hover:text-white" title="LinkedIn">
-                                <ExternalLink size={14} />
-                              </a>
-                            )}
+          {activeTab === 'registrations' && (() => {
+            const displayEvents = eventsList.length > 0 ? eventsList : [
+              { id: 'hackathon', title: 'Yuva Hackathon', color: '#ff7300', tagline: 'Flagship 36-hour sprint of relentless collaborative building.', venue: 'CS Lab Block', iconName: 'Terminal' },
+              { id: 'ctf', title: 'Cyber-Volt CTF', color: '#00ff66', tagline: 'Jeopardy-style Capture The Flag cybersecurity hacking arena.', venue: 'Main Auditorium', iconName: 'ShieldAlert' },
+              { id: 'dronerace', title: 'Sky-Rush Drone Race', color: '#00f0ff', tagline: 'High-speed FPV drone racing through complex obstacle loops.', venue: 'University Grounds', iconName: 'Rocket' },
+              { id: 'robowars', title: 'Robo-Wars Arena', color: '#ff003c', tagline: 'Ultimate clashing arena of custom combat robotics.', venue: 'Open Arena Block', iconName: 'Bot' },
+              { id: 'workshop', title: 'AI & Web3 Workshops', color: '#ffb700', tagline: 'Expert-led developer sessions on deep tech paradigms.', venue: 'Seminar Hall 2', iconName: 'Sparkles' }
+            ]
+
+            return (
+              <div className="p-6 space-y-6">
+                {displayEvents.map(ev => {
+                  const evRegs = filteredRegs.filter(r => (r.eventId || mapTrackToEventId(r.track)) === ev.id)
+                  const totalCount = registrations.filter(r => (r.eventId || mapTrackToEventId(r.track)) === ev.id).length
+                  const isExpanded = !!expandedCards[ev.id]
+                  const themeColor = ev.color || '#ff7300'
+
+                  return (
+                    <div 
+                      key={ev.id} 
+                      className="glass-card corner-bracket rounded-xl border border-slate-900 bg-black/10 overflow-hidden transition-all duration-300"
+                      style={{ borderLeft: `3px solid ${themeColor}` }}
+                    >
+                      {/* Card Header */}
+                      <div 
+                        onClick={() => setExpandedCards(prev => ({ ...prev, [ev.id]: !prev[ev.id] }))}
+                        className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 sm:p-5 cursor-pointer hover:bg-slate-900/10 transition-colors gap-4"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div 
+                            className="p-2.5 rounded-lg text-white flex items-center justify-center"
+                            style={{ background: `${themeColor}15`, color: themeColor }}
+                          >
+                            {getEventIcon(ev.iconName || 'Terminal', 20)}
                           </div>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={7} className="p-8 text-center text-slate-500 font-mono text-xs">
-                        // NO STUDENT DATA LOGGED ON CURRENT SCAN FILTER
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )}
+                          <div>
+                            <h3 className="font-orbitron text-sm sm:text-base font-bold text-white uppercase tracking-wider">
+                              {ev.title}
+                            </h3>
+                            <p className="text-[10px] font-mono text-slate-500 mt-0.5 uppercase">
+                              {ev.tagline || 'Active event track'} • {ev.venue || 'Campus Venue'}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-3 self-end sm:self-auto">
+                          <span 
+                            className="px-2.5 py-1 rounded border text-[10px] font-mono font-bold tracking-wider"
+                            style={{ borderColor: `${themeColor}25`, backgroundColor: `${themeColor}05`, color: themeColor }}
+                          >
+                            {totalCount} SIGNUPS
+                          </span>
+                          <button className="text-slate-500 hover:text-white transition-colors">
+                            {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Card Body - Registrations List */}
+                      <AnimatePresence initial={false}>
+                        {isExpanded && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="border-t border-slate-900/60 overflow-hidden"
+                          >
+                            <div className="overflow-x-auto">
+                              <table className="w-full text-left text-xs font-light">
+                                <thead>
+                                  <tr className="border-b border-slate-900 font-mono text-[10px] text-slate-500 tracking-wider bg-black/40 uppercase">
+                                    <th className="p-4">Name</th>
+                                    <th className="p-4">Email</th>
+                                    <th className="p-4">College</th>
+                                    <th className="p-4 text-center">Yr</th>
+                                    <th className="p-4 text-center">Size</th>
+                                    <th className="p-4">Track Detail</th>
+                                    <th className="p-4 text-center">Food</th>
+                                    <th className="p-4 text-center">Status</th>
+                                    <th className="p-4 text-center">Actions</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-900/60">
+                                  {evRegs.length > 0 ? (
+                                    evRegs.map(reg => (
+                                      <tr key={reg.id} className="hover:bg-slate-900/20 transition-colors">
+                                        <td className="p-4 font-bold text-white">
+                                          <div>{reg.name}</div>
+                                          <div className="flex gap-2 mt-1 text-[10px] text-slate-500 font-normal">
+                                            {reg.github && (
+                                              <a href={reg.github.startsWith('http') ? reg.github : `https://${reg.github}`} target="_blank" rel="noreferrer" className="hover:text-white flex items-center gap-0.5" title="GitHub">
+                                                <ExternalLink size={10} /> GitHub
+                                              </a>
+                                            )}
+                                            {reg.linkedin && (
+                                              <a href={reg.linkedin.startsWith('http') ? reg.linkedin : `https://${reg.linkedin}`} target="_blank" rel="noreferrer" className="hover:text-white flex items-center gap-0.5" title="LinkedIn">
+                                                <ExternalLink size={10} /> LinkedIn
+                                              </a>
+                                            )}
+                                          </div>
+                                        </td>
+                                        <td className="p-4 font-mono text-[11px] text-slate-400">{reg.email}</td>
+                                        <td className="p-4 text-slate-350">{reg.college}</td>
+                                        <td className="p-4 text-center text-slate-350 font-mono">{reg.year}</td>
+                                        <td className="p-4 text-center font-mono font-semibold text-[#ff7300]">{reg.teamSize}</td>
+                                        <td className="p-4 text-slate-350">{reg.track}</td>
+                                        <td className="p-4 text-center font-mono text-[10px] font-semibold">
+                                          {reg.food === 'veg' && (
+                                            <span className="text-emerald-400 uppercase">VEG</span>
+                                          )}
+                                          {reg.food === 'nonveg' && (
+                                            <span className="text-rose-400 uppercase">NON-VEG</span>
+                                          )}
+                                          {(!reg.food || reg.food === 'none') && (
+                                            <span className="text-slate-500 uppercase">NONE</span>
+                                          )}
+                                        </td>
+                                        <td className="p-4 text-center">
+                                          {(!reg.status || reg.status === 'pending') && (
+                                            <span className="px-2 py-0.5 rounded bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 text-[9px] font-mono font-bold tracking-wider uppercase">
+                                              PENDING
+                                            </span>
+                                          )}
+                                          {reg.status === 'accepted' && (
+                                            <span className="px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-[9px] font-mono font-bold tracking-wider uppercase">
+                                              ACCEPTED
+                                            </span>
+                                          )}
+                                          {reg.status === 'declined' && (
+                                            <span className="px-2 py-0.5 rounded bg-red-500/10 border border-red-500/25 text-red-500 text-[9px] font-mono font-bold tracking-wider uppercase">
+                                              DECLINED
+                                            </span>
+                                          )}
+                                        </td>
+                                        <td className="p-4 text-center">
+                                          <div className="flex justify-center gap-2">
+                                            {(!reg.status || reg.status === 'pending') && (
+                                              <>
+                                                <button
+                                                  onClick={() => handleAcceptRegistration(reg)}
+                                                  className="px-2.5 py-1 rounded border border-emerald-500/35 bg-emerald-950/10 text-emerald-400 hover:bg-emerald-500 hover:text-black text-[10px] font-mono font-bold uppercase transition-all flex items-center gap-1"
+                                                  title="Accept and Issue Ticket"
+                                                >
+                                                  <Check size={11} /> Accept
+                                                </button>
+                                                <button
+                                                  onClick={() => handleDeclineRegistration(reg)}
+                                                  className="px-2.5 py-1 rounded border border-red-500/35 bg-red-950/10 text-red-400 hover:bg-red-500 hover:text-white text-[10px] font-mono font-bold uppercase transition-all flex items-center gap-1"
+                                                  title="Decline Registration"
+                                                >
+                                                  <X size={11} /> Decline
+                                                </button>
+                                              </>
+                                            )}
+                                            {reg.status === 'accepted' && (
+                                              <button
+                                                onClick={() => handleDeclineRegistration(reg)}
+                                                className="px-2.5 py-1 rounded border border-red-500/20 text-red-555 hover:text-red-400 hover:border-red-500/40 text-[10px] font-mono font-bold uppercase transition-all flex items-center gap-1"
+                                                title="Revoke Ticket and Decline"
+                                              >
+                                                <X size={11} /> Revoke & Decline
+                                              </button>
+                                            )}
+                                            {reg.status === 'declined' && (
+                                              <button
+                                                onClick={() => handleAcceptRegistration(reg)}
+                                                className="px-2.5 py-1 rounded border border-emerald-500/20 text-emerald-555 hover:text-emerald-400 hover:border-emerald-500/40 text-[10px] font-mono font-bold uppercase transition-all flex items-center gap-1"
+                                                title="Re-Accept and Issue Ticket"
+                                              >
+                                                <Check size={11} /> Accept
+                                              </button>
+                                            )}
+                                          </div>
+                                        </td>
+                                      </tr>
+                                    ))
+                                  ) : (
+                                    <tr>
+                                      <td colSpan={9} className="p-8 text-center text-slate-500 font-mono text-xs">
+                                        // NO REGISTRANTS FOUND UNDER CURRENT FILTER
+                                      </td>
+                                    </tr>
+                                  )}
+                                </tbody>
+                              </table>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  )
+                })}
+              </div>
+            )
+          })()}
 
           {/* ── Contacts Tab ─────────────────────────────────────────────────── */}
           {activeTab === 'contacts' && (
@@ -1325,6 +1616,67 @@ export default function AdminClient() {
             </div>
           )}
 
+          {/* ── Sponsors Tab ─────────────────────────────────────────────────── */}
+          {activeTab === 'sponsors' && (
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <span className="font-mono text-[10px] text-slate-500 uppercase">// CORPORATE & TECH SPONSORS</span>
+                <button
+                  onClick={openAddSponsorModal}
+                  className="btn-glow px-4 py-2 text-xs font-bold rounded-lg text-black flex items-center gap-1.5"
+                >
+                  <Plus size={14} /> ADD SPONSOR
+                </button>
+              </div>
+
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {filteredSponsors.length > 0 ? (
+                  filteredSponsors.map(sponsor => (
+                    <div 
+                      key={sponsor.id} 
+                      className="glass-card rounded-xl border border-slate-900 bg-black/40 p-4 flex flex-col items-center text-center"
+                      style={{ 
+                        borderTop: `2px solid ${
+                          sponsor.tier === 'title' ? '#f59e0b' : sponsor.tier === 'platinum' ? '#cbd5e1' : '#b45309'
+                        }`
+                      }}
+                    >
+                      <div className="px-3 py-1 rounded-full border border-orange-500/20 bg-orange-500/5 text-orange-400 font-mono text-[9px] uppercase mb-3">
+                        {sponsor.tier} Sponsor
+                      </div>
+                      
+                      <div className="w-12 h-12 bg-white/5 rounded-lg flex items-center justify-center text-orange-400 font-orbitron font-bold text-xs uppercase mb-3 border border-slate-800">
+                        {sponsor.logoName.substring(0, 3)}
+                      </div>
+
+                      <h3 className="font-orbitron text-xs font-bold text-white mb-0.5 line-clamp-1">{sponsor.name}</h3>
+                      <p className="text-[10px] text-slate-400 mb-4 line-clamp-2 h-10 leading-normal">{sponsor.description}</p>
+                      
+                      <div className="flex gap-2 w-full mt-auto">
+                        <button
+                          onClick={() => openEditSponsorModal(sponsor)}
+                          className="flex-1 py-1.5 rounded border border-slate-800 bg-[#04070d]/30 text-slate-300 text-[10px] font-bold hover:border-orange-500/20 transition-all flex items-center justify-center gap-1"
+                        >
+                          <Edit size={11} /> Edit
+                        </button>
+                        <button
+                          onClick={() => handleDeleteSponsor(sponsor.id)}
+                          className="py-1.5 px-2 rounded border border-red-500/20 bg-red-950/10 text-red-500 text-[10px] font-bold hover:bg-red-950/20 transition-all"
+                        >
+                          <Trash2 size={11} />
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="col-span-full py-12 text-center text-slate-500 font-mono text-xs">
+                    // NO SPONSORS FOUND — SEED THE DATABASE OR ADD MANUALLY
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* ── Settings Tab ─────────────────────────────────────────────────── */}
           {activeTab === 'settings' && (
             <div className="p-6">
@@ -1722,6 +2074,74 @@ export default function AdminClient() {
                   <button type="button" disabled={savingMember} onClick={() => setIsTeamModalOpen(false)} className="btn-outline px-5 py-2 text-xs font-bold rounded-lg">Cancel</button>
                   <button type="submit" disabled={savingMember} className="btn-glow px-5 py-2 text-xs font-bold rounded-lg text-black flex items-center gap-1">
                     {savingMember ? <><Loader2 className="animate-spin" size={14} /> Saving...</> : 'Save Member'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Sponsor CRUD Modal ─────────────────────────────────────────────────── */}
+      <AnimatePresence>
+        {isSponsorModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div onClick={() => { if (!savingSponsor) setIsSponsorModalOpen(false) }} className="fixed inset-0 bg-black/85 backdrop-blur-sm" />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 10 }}
+              className="w-full max-w-xl relative z-10 glass-card rounded-2xl p-6 border border-slate-800 bg-[#04070d] shadow-[0_0_50px_rgba(255,115,0,0.08)]"
+            >
+              <div className="flex justify-between items-center mb-6 border-b border-slate-900 pb-4">
+                <div>
+                  <span className="font-mono text-[9px] text-[#ff7300] tracking-[0.3em] uppercase block">// SPONSOR PROTOCOL</span>
+                  <h2 className="font-orbitron text-lg font-black text-white">{editingSponsor ? 'EDIT SPONSOR' : 'ADD SPONSOR'}</h2>
+                </div>
+                <button type="button" disabled={savingSponsor} onClick={() => setIsSponsorModalOpen(false)} className="text-slate-400 hover:text-white"><X size={20} /></button>
+              </div>
+              <form onSubmit={handleSaveSponsor} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <AdminInput label="Sponsor ID (unique)" value={sponsorForm.id} onChange={v => setSponsorForm(prev => ({ ...prev, id: v }))} placeholder="e.g. sponsor-google" required disabled={!!editingSponsor} />
+                  <AdminInput label="Display Order" value={String(sponsorForm.order)} onChange={v => setSponsorForm(prev => ({ ...prev, order: parseInt(v) || 0 }))} placeholder="1" type="number" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <AdminInput label="Sponsor Name" value={sponsorForm.name} onChange={v => setSponsorForm(prev => ({ ...prev, name: v }))} placeholder="e.g. Google Cloud" required />
+                  <div>
+                    <label className="font-mono text-[9px] text-slate-500 uppercase block mb-1">Tier / Level</label>
+                    <select 
+                      value={sponsorForm.tier} 
+                      onChange={e => setSponsorForm(prev => ({ ...prev, tier: e.target.value }))}
+                      className="w-full px-3 py-2 rounded border border-slate-850 bg-black/40 text-xs text-white focus:outline-none focus:border-orange-500/50 transition-colors"
+                    >
+                      <option value="title">Title Sponsor</option>
+                      <option value="platinum">Platinum Partner</option>
+                      <option value="gold">Gold Partner</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <AdminInput label="Logo Key (Asset name)" value={sponsorForm.logoName} onChange={v => setSponsorForm(prev => ({ ...prev, logoName: v }))} placeholder="e.g. srm, devfolio, solana, polygon, filecoin, auth0" required />
+                  <div className="text-[10px] text-slate-500 font-mono flex items-center leading-normal pt-4">
+                    // Predefined icons: srm, devfolio, solana, polygon, filecoin, auth0. Default SVG is used otherwise.
+                  </div>
+                </div>
+                <div className="relative">
+                  <label className="font-mono text-[9px] text-slate-500 uppercase block mb-1">Description / Tagline</label>
+                  <textarea
+                    value={sponsorForm.description}
+                    onChange={e => setSponsorForm(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="e.g. Driving digital transformation globally..."
+                    required
+                    rows={3}
+                    className="w-full px-3 py-2 rounded border border-slate-850 bg-black/40 text-xs text-white placeholder-slate-700 focus:outline-none focus:border-orange-500/50 transition-colors leading-relaxed"
+                  />
+                </div>
+                
+                <div className="flex justify-end gap-3 border-t border-slate-900 pt-4">
+                  <button type="button" disabled={savingSponsor} onClick={() => setIsSponsorModalOpen(false)} className="btn-outline px-5 py-2 text-xs font-bold rounded-lg">Cancel</button>
+                  <button type="submit" disabled={savingSponsor} className="btn-glow px-5 py-2 text-xs font-bold rounded-lg text-black flex items-center gap-1">
+                    {savingSponsor ? <><Loader2 className="animate-spin" size={14} /> Saving...</> : 'Save Sponsor'}
                   </button>
                 </div>
               </form>
